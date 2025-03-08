@@ -23,12 +23,11 @@ from leaseweb_api import LeasewebAuthenticationProvider, DedicatedServices, Dedi
 
 auth = LeasewebAuthenticationProvider(api_token)
 
-# Then u can either use the DedicatedServices Class, or DedicatedServers directly
-
+# Then u can either use the DedicatedServices Class
 api = DedicatedServices(auth)
 print(api.dedicated_servers.get_servers())
 
-# or
+# or DedicatedServers directly
 api = DedicatedServers(auth)
 print(api.get_servers())
 

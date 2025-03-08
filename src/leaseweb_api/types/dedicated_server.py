@@ -69,15 +69,3 @@ class DedicatedServer(BaseModel):
     rack: Rack
     serial_number: str
     specs: ServerSpecs
-
-
-class ListDedicatedServersQueryParameters(BaseModel):
-    limit: Optional[int] = None
-    offset: Optional[int] = None
-    reference: Optional[str] = None
-    ip: Optional[str] = None
-    macAddress: Optional[str] = None
-    site: Optional[str] = None
-    privateRackId: Optional[str] = None
-    privateNetworkCapable: Optional[bool] = None
-    privateNetworkEnabled: Optional[bool] = None

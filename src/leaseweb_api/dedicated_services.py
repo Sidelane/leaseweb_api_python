@@ -3,7 +3,8 @@ from .helper import make_http_get_request, camel_to_snake, nested_camel_to_snake
 from .auth_provider import LeasewebAuthenticationProvider
 from .types.error import APIError
 from .types.dedicated_server import DedicatedServer
-from .types.network import Ip4
+from .types.network import Ip4, Nullroute
+from .types.parameters import QueryParameters
 
 
 class DedicatedServices:
@@ -109,3 +110,28 @@ class DedicatedServices:
                 if "error_code" not in converted_data:
                     converted_data["error_code"] = str(r.status_code)
                 return APIError(**converted_data)
+
+    # Show null route history
+    def get_nullroute_history(
+        self, server_id: str, query_parameters: QueryParameters = None
+    ) -> list[Nullroute]:
+        if query_parameters is not None:
+            query_parameters = {
+                k: v for k, v in query_parameters.dict().items() if v is not None
+            }
+        r = make_http_get_request(
+            "GET",
+            f"{BASE_URL}/bareMetals/v2/servers/{server_id}/nullRouteHistory",
+            self._auth.get_auth_header(),
+            params=query_parameters,
+        )
+        data = r.json()
+
+        ret = []
+        for nullroute in data["nullRoutes"]:
+            nullroute = {
+                camel_to_snake(k): nested_camel_to_snake(v)
+                for k, v in nullroute.items()
+            }
+            ret.append(Nullroute.model_validate(nullroute))
+        return ret

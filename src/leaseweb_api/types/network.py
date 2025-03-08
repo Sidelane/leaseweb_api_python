@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional
+from datetime import datetime
 
 from .enums import NetworkType, DetectionProfile, ProtectionType
 from .rack import Port
@@ -58,3 +59,11 @@ class Ip4(BaseModel):
     null_routed: Optional[bool] = None
     reverse_lookup: Optional[str] = None
     version: int
+
+
+class Nullroute(BaseModel):
+    automated_unnulling_at: datetime = None
+    comment: str
+    null_level: int
+    nulled_at: datetime
+    ticket_id: Optional[str] = None

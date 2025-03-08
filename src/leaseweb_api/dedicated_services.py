@@ -12,7 +12,7 @@ from .types.parameters import (
     NetworkTypeParameter,
     ShowMetricsParameter,
 )
-from .types.credentials import CredentialWithoutPassword, CredentialType
+from .types.credentials import Credential, CredentialWithoutPassword, CredentialType
 
 
 class DedicatedServices:
@@ -516,6 +516,24 @@ class DedicatedServices:
                     }
                     ret.append(CredentialWithoutPassword.model_validate(cred))
                 return ret
+            case _:
+                converted_data = {camel_to_snake(k): v for k, v in data.items()}
+                if "error_code" not in converted_data:
+                    converted_data["error_code"] = str(r.status_code)
+                return APIError(**converted_data)
+
+    # Show server credentials
+    def get_server_credentials(self, server_id: str, credential_type: CredentialType, username: str) -> dict[str, str] | APIError:
+        r = make_http_get_request(
+            "GET",
+            f"{BASE_URL}/bareMetals/v2/servers/{server_id}/credentials/{credential_type.value}/{username}",
+            self._auth.get_auth_header(),
+        )
+        data = r.json()
+
+        match r.status_code:
+            case 200:
+                return Credential.model_validate(data)
             case _:
                 converted_data = {camel_to_snake(k): v for k, v in data.items()}
                 if "error_code" not in converted_data:

@@ -58,3 +58,9 @@ class ShowMetricsParameter(BaseModel):
     to: datetime
     granularity: Optional[Granularity] = None
     aggregation: Aggregation
+
+
+class ListJobsParameter(BaseModel):
+    type: Optional[str] = None
+    status: Optional[str] = None
+    isRunning: Optional[bool] = None

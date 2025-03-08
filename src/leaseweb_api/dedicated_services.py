@@ -11,8 +11,10 @@ from .types.parameters import (
     QueryParameters,
     NetworkTypeParameter,
     ShowMetricsParameter,
+    ListJobsParameter,
 )
 from .types.credentials import Credential, CredentialWithoutPassword, CredentialType
+from .types.jobs import Job
 
 
 class DedicatedServices:
@@ -536,6 +538,39 @@ class DedicatedServices:
         match r.status_code:
             case 200:
                 return Credential.model_validate(data)
+            case _:
+                converted_data = {camel_to_snake(k): v for k, v in data.items()}
+                if "error_code" not in converted_data:
+                    converted_data["error_code"] = str(r.status_code)
+                return APIError(**converted_data)
+
+    # List jobs
+    def get_jobs(
+        self, server_id: str, query_parameter: ListJobsParameter = None
+    ) -> list[Job] | APIError:
+        if query_parameter is not None:
+            query_parameter = {
+                k: v for k, v in query_parameter.dict().items() if v is not None
+            }
+
+        r = make_http_get_request(
+            "GET",
+            f"{BASE_URL}/bareMetals/v2/servers/{server_id}/jobs",
+            self._auth.get_auth_header(),
+            params=query_parameter,
+        )
+        data = r.json()
+
+        match r.status_code:
+            case 200:
+                ret = []
+                for job in data["jobs"]:
+                    job = {
+                        camel_to_snake(k): nested_camel_to_snake(v)
+                        for k, v in job.items()
+                    }
+                    ret.append(Job.model_validate(job))
+                return ret
             case _:
                 converted_data = {camel_to_snake(k): v for k, v in data.items()}
                 if "error_code" not in converted_data:

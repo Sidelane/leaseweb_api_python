@@ -1,4 +1,5 @@
 from typing import Optional
+from enum import Enum
 from pydantic import BaseModel
 
 from .enums import NetworkType
@@ -28,3 +29,9 @@ class ListIpsQueryParameters(BaseModel):
     ips: Optional[str] = None
     limit: Optional[int] = None
     offset: Optional[int] = None
+
+
+class NetworkTypeParameter(str, Enum):
+    PUBLIC = "public"
+    INTERNAL = "internal"
+    REMOTE_MANAGEMENT = "remoteManagement"

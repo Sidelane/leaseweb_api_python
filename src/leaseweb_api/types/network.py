@@ -6,6 +6,15 @@ from .enums import NetworkType, DetectionProfile, ProtectionType
 from .rack import Port
 
 
+class OperationNetworkInterface(BaseModel):
+    link_speed: str
+    oper_status: str
+    status: str
+    switch_interface: str
+    switch_name: str
+    type: str
+
+
 class NetworkInterface(BaseModel):
     mac: Optional[str] = None
     ip: Optional[str] = None

@@ -3,8 +3,8 @@ from .helper import make_http_get_request, camel_to_snake, nested_camel_to_snake
 from .auth_provider import LeasewebAuthenticationProvider
 from .types.error import APIError
 from .types.dedicated_server import DedicatedServer
-from .types.network import Ip4, Nullroute, NetworkInterface
-from .types.parameters import QueryParameters
+from .types.network import Ip4, Nullroute, OperationNetworkInterface
+from .types.parameters import QueryParameters, NetworkTypeParameter
 
 
 class DedicatedServices:
@@ -142,9 +142,11 @@ class DedicatedServices:
                 if "error_code" not in converted_data:
                     converted_data["error_code"] = str(r.status_code)
                 return APIError(**converted_data)
-    
+
     # List network interfaces
-    def get_network_interfaces(self, server_id: str) -> list[NetworkInterface] | APIError:
+    def get_network_interfaces(
+        self, server_id: str
+    ) -> list[OperationNetworkInterface] | APIError:
         r = make_http_get_request(
             "GET",
             f"{BASE_URL}/bareMetals/v2/servers/{server_id}/networkInterfaces",
@@ -160,8 +162,31 @@ class DedicatedServices:
                         camel_to_snake(k): nested_camel_to_snake(v)
                         for k, v in interface.items()
                     }
-                    ret.append(NetworkInterface.model_validate(interface))
+                    ret.append(OperationNetworkInterface.model_validate(interface))
                 return ret
+            case _:
+                converted_data = {camel_to_snake(k): v for k, v in data.items()}
+                if "error_code" not in converted_data:
+                    converted_data["error_code"] = str(r.status_code)
+                return APIError(**converted_data)
+
+    # Show a network interface
+    def get_network_interface(
+        self, server_id: str, network_type: NetworkTypeParameter
+    ) -> OperationNetworkInterface | APIError:
+        r = make_http_get_request(
+            "GET",
+            f"{BASE_URL}/bareMetals/v2/servers/{server_id}/networkInterfaces/{network_type.value}",
+            self._auth.get_auth_header(),
+        )
+        data = r.json()
+
+        match r.status_code:
+            case 200:
+                interface = {
+                    camel_to_snake(k): nested_camel_to_snake(v) for k, v in data.items()
+                }
+                return OperationNetworkInterface.model_validate(interface)
             case _:
                 converted_data = {camel_to_snake(k): v for k, v in data.items()}
                 if "error_code" not in converted_data:

@@ -6,6 +6,7 @@ from .types.dedicated_server import DedicatedServer
 from .types.metrics import MetricValues
 from .types.network import Ip4, Nullroute, OperationNetworkInterface
 from .types.notification import NotificationSetting, DataTrafficNotificationSetting
+from .types.hardware import HardwareInformation
 from .types.parameters import (
     QueryParameters,
     NetworkTypeParameter,
@@ -302,9 +303,11 @@ class DedicatedServices:
                 if "error_code" not in converted_data:
                     converted_data["error_code"] = str(r.status_code)
                 return APIError(**converted_data)
-            
+
     # Show a bandwidth notification setting
-    def get_bandwidth_notification_setting(self, server_id: str, notification_setting_id: str) -> NotificationSetting | APIError:
+    def get_bandwidth_notification_setting(
+        self, server_id: str, notification_setting_id: str
+    ) -> NotificationSetting | APIError:
         r = make_http_get_request(
             "GET",
             f"{BASE_URL}/bareMetals/v2/servers/{server_id}/notificationSettings/bandwidth/{notification_setting_id}",
@@ -320,9 +323,11 @@ class DedicatedServices:
                 if "error_code" not in converted_data:
                     converted_data["error_code"] = str(r.status_code)
                 return APIError(**converted_data)
-            
+
     # List data traffic notification settings
-    def get_bandwidth_notification_setting(self, server_id: str) -> DataTrafficNotificationSetting | APIError:
+    def get_bandwidth_notification_setting(
+        self, server_id: str
+    ) -> DataTrafficNotificationSetting | APIError:
         r = make_http_get_request(
             "GET",
             f"{BASE_URL}/bareMetals/v2/servers/{server_id}/notificationSettings/datatraffic",
@@ -340,7 +345,9 @@ class DedicatedServices:
                 return APIError(**converted_data)
 
     # Show a datatraffic notification setting
-    def get_datatraffic_notification_setting(self, server_id: str, notification_setting_id: str) -> DataTrafficNotificationSetting | APIError:
+    def get_datatraffic_notification_setting(
+        self, server_id: str, notification_setting_id: str
+    ) -> DataTrafficNotificationSetting | APIError:
         r = make_http_get_request(
             "GET",
             f"{BASE_URL}/bareMetals/v2/servers/{server_id}/notificationSettings/datatraffic/{notification_setting_id}",
@@ -351,6 +358,26 @@ class DedicatedServices:
         match r.status_code:
             case 200:
                 return DataTrafficNotificationSetting.model_validate(data)
+            case _:
+                converted_data = {camel_to_snake(k): v for k, v in data.items()}
+                if "error_code" not in converted_data:
+                    converted_data["error_code"] = str(r.status_code)
+                return APIError(**converted_data)
+
+    # Show hardware information
+    def get_hardware_information(
+        self, server_id: str
+    ) -> HardwareInformation | APIError:
+        r = make_http_get_request(
+            "GET",
+            f"{BASE_URL}/bareMetals/v2/servers/{server_id}/hardwareInfo",
+            self._auth.get_auth_header(),
+        )
+        data = r.json()
+
+        match r.status_code:
+            case 200:
+                print(data)
             case _:
                 converted_data = {camel_to_snake(k): v for k, v in data.items()}
                 if "error_code" not in converted_data:

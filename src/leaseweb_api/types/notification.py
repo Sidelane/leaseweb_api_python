@@ -12,10 +12,9 @@ class NotificationSetting(BaseModel):
     frequency: str
     id: str
     last_checked_at: Optional[str] = None
-    threshold = str
+    threshold: str
     threshold_exceeded_at: Optional[str] = None
     unit: str
 
 
-class DataTrafficNotificationSetting(NotificationSetting):
-    ...
+class DataTrafficNotificationSetting(NotificationSetting): ...

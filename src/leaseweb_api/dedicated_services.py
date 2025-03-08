@@ -383,3 +383,47 @@ class DedicatedServices:
                 if "error_code" not in converted_data:
                     converted_data["error_code"] = str(r.status_code)
                 return APIError(**converted_data)
+
+    # List control panels
+    def get_control_panels(self) -> list[dict[str, str]] | APIError:
+        r = make_http_get_request(
+            "GET",
+            f"{BASE_URL}/bareMetals/v2/controlPanels",
+            self._auth.get_auth_header(),
+        )
+        data = r.json()
+
+        match r.status_code:
+            case 200:
+                return data["controlPanels"]
+            case _:
+                converted_data = {camel_to_snake(k): v for k, v in data.items()}
+                if "error_code" not in converted_data:
+                    converted_data["error_code"] = str(r.status_code)
+                return APIError(**converted_data)
+
+    # List operating systems
+    def get_operating_systems(
+        self, control_panel_id: str = None
+    ) -> list[dict[str, str]] | APIError:
+        if control_panel_id is not None:
+            control_panel_id = {"controlPanelId": control_panel_id}
+            control_panel_id = {
+                k: v for k, v in control_panel_id.items() if v is not None
+            }
+        r = make_http_get_request(
+            "GET",
+            f"{BASE_URL}/bareMetals/v2/operatingSystems",
+            self._auth.get_auth_header(),
+            params=control_panel_id,
+        )
+        data = r.json()
+
+        match r.status_code:
+            case 200:
+                return data["operatingSystems"]
+            case _:
+                converted_data = {camel_to_snake(k): v for k, v in data.items()}
+                if "error_code" not in converted_data:
+                    converted_data["error_code"] = str(r.status_code)
+                return APIError(**converted_data)

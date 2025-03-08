@@ -493,3 +493,31 @@ class DedicatedServices:
                 if "error_code" not in converted_data:
                     converted_data["error_code"] = str(r.status_code)
                 return APIError(**converted_data)
+
+    # List server credentials by type
+    def get_server_credentials_by_type_without_password(
+        self, server_id: str, credential_type: CredentialType
+    ) -> list[dict[str, str]] | APIError:
+        r = make_http_get_request(
+            "GET",
+            f"{BASE_URL}/bareMetals/v2/servers/{server_id}/credentials/{credential_type.value}",
+            self._auth.get_auth_header(),
+        )
+        data = r.json()
+        print(data)
+
+        match r.status_code:
+            case 200:
+                ret = []
+                for cred in data["credentials"]:
+                    cred = {
+                        camel_to_snake(k): nested_camel_to_snake(v)
+                        for k, v in cred.items()
+                    }
+                    ret.append(CredentialWithoutPassword.model_validate(cred))
+                return ret
+            case _:
+                converted_data = {camel_to_snake(k): v for k, v in data.items()}
+                if "error_code" not in converted_data:
+                    converted_data["error_code"] = str(r.status_code)
+                return APIError(**converted_data)

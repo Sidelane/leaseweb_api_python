@@ -12,6 +12,7 @@ from .types.parameters import (
     NetworkTypeParameter,
     ShowMetricsParameter,
 )
+from .types.credentials import CredentialWithoutPassword, CredentialType
 
 
 class DedicatedServices:
@@ -429,7 +430,9 @@ class DedicatedServices:
                 return APIError(**converted_data)
 
     # Show operating system
-    def get_operating_system(self, operating_system_id: str) -> dict[str, str] | APIError:
+    def get_operating_system(
+        self, operating_system_id: str
+    ) -> dict[str, str] | APIError:
         r = make_http_get_request(
             "GET",
             f"{BASE_URL}/bareMetals/v2/operatingSystems/{operating_system_id}",
@@ -458,6 +461,33 @@ class DedicatedServices:
         match r.status_code:
             case 200:
                 return data["rescueImages"]
+            case _:
+                converted_data = {camel_to_snake(k): v for k, v in data.items()}
+                if "error_code" not in converted_data:
+                    converted_data["error_code"] = str(r.status_code)
+                return APIError(**converted_data)
+
+    # List server credentials
+    def get_server_credentials_without_password(
+        self, server_id: str
+    ) -> CredentialWithoutPassword | APIError:
+        r = make_http_get_request(
+            "GET",
+            f"{BASE_URL}/bareMetals/v2/servers/{server_id}/credentials",
+            self._auth.get_auth_header(),
+        )
+        data = r.json()
+
+        match r.status_code:
+            case 200:
+                ret = []
+                for cred in data["credentials"]:
+                    cred = {
+                        camel_to_snake(k): nested_camel_to_snake(v)
+                        for k, v in cred.items()
+                    }
+                    ret.append(CredentialWithoutPassword.model_validate(cred))
+                return ret
             case _:
                 converted_data = {camel_to_snake(k): v for k, v in data.items()}
                 if "error_code" not in converted_data:

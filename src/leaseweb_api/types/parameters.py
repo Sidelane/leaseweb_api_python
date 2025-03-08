@@ -1,5 +1,6 @@
 from typing import Optional
 from enum import Enum
+from datetime import datetime
 from pydantic import BaseModel
 
 from .enums import NetworkType
@@ -35,3 +36,24 @@ class NetworkTypeParameter(str, Enum):
     PUBLIC = "public"
     INTERNAL = "internal"
     REMOTE_MANAGEMENT = "remoteManagement"
+
+
+class Granularity(str, Enum):
+    FIVE_MIN = "5MIN"
+    HOUR = "HOUR"
+    DAY = "DAY"
+    WEEK = "WEEK"
+    MONTH = "MONTH"
+    YEAR = "YEAR"
+
+
+class Aggregation(str, Enum):
+    AVG = "AVG"
+    PERC_95 = "95TH"
+
+
+class BandwidthMetricsParameter(BaseModel):
+    start: datetime
+    to: datetime
+    granularity: Optional[Granularity] = None
+    aggregation: Aggregation

@@ -3,8 +3,13 @@ from .helper import make_http_get_request, camel_to_snake, nested_camel_to_snake
 from .auth_provider import LeasewebAuthenticationProvider
 from .types.error import APIError
 from .types.dedicated_server import DedicatedServer
+from .types.metrics import MetricValues
 from .types.network import Ip4, Nullroute, OperationNetworkInterface
-from .types.parameters import QueryParameters, NetworkTypeParameter
+from .types.parameters import (
+    QueryParameters,
+    NetworkTypeParameter,
+    BandwidthMetricsParameter,
+)
 
 
 class DedicatedServices:
@@ -194,7 +199,9 @@ class DedicatedServices:
                 return APIError(**converted_data)
 
     # Inspect DDoS notification settings
-    def get_ddos_notification_settings(self, server_id: str) -> dict[str, str] | APIError:
+    def get_ddos_notification_settings(
+        self, server_id: str
+    ) -> dict[str, str] | APIError:
         r = make_http_get_request(
             "GET",
             f"{BASE_URL}/bareMetals/v2/servers/{server_id}/notificationSettings/ddos",
@@ -205,6 +212,38 @@ class DedicatedServices:
         match r.status_code:
             case 200:
                 return data
+            case _:
+                converted_data = {camel_to_snake(k): v for k, v in data.items()}
+                if "error_code" not in converted_data:
+                    converted_data["error_code"] = str(r.status_code)
+                return APIError(**converted_data)
+
+    # Show bandwidth metrics
+    def get_bandwidth_metrics(
+        self, server_id: str, query_parameters: BandwidthMetricsParameter
+    ) -> MetricValues | APIError:
+
+        if query_parameters is not None:
+            query_parameters = {
+                k: v for k, v in query_parameters.dict().items() if v is not None
+            }
+            query_parameters["from"] = query_parameters["start"]
+            query_parameters.pop("start")
+            query_parameters["from"] = query_parameters["from"].isoformat() + "Z"
+            query_parameters["to"] = query_parameters["to"].isoformat() + "Z"
+            query_parameters["aggregation"] = query_parameters["aggregation"].value
+
+        r = make_http_get_request(
+            "GET",
+            f"{BASE_URL}/bareMetals/v2/servers/{server_id}/metrics/bandwidth",
+            self._auth.get_auth_header(),
+            params=query_parameters,
+        )
+        data = r.json()
+
+        match r.status_code:
+            case 200:
+                return MetricValues.model_validate(data["metrics"])
             case _:
                 converted_data = {camel_to_snake(k): v for k, v in data.items()}
                 if "error_code" not in converted_data:

@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Any
 from pydantic import BaseModel
 from datetime import datetime
 
@@ -52,7 +52,7 @@ class Task(BaseModel):
     flow: Optional[str] = None
     on_error: Optional[str] = None
     status: Optional[str] = None
-    status_timestamps: Optional[str] = None
+    status_timestamps: Optional[dict[Any, Any]] = None
     uuid: Optional[str] = None
 
 

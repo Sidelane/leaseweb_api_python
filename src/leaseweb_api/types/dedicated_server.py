@@ -8,65 +8,65 @@ from .contract import Contract
 
 
 class Location(BaseModel):
-    site: str
-    suite: str
-    rack: str
-    unit: str
+    site: Optional[str] = None
+    suite: Optional[str] = None
+    rack: Optional[str] = None
+    unit: Optional[str] = None
 
 
 class FeatureAvailability(BaseModel):
-    automation: bool
-    power_cycle: bool
-    ipmi_reboot: bool
-    private_network: bool
-    remote_management: bool
+    automation: Optional[bool] = None
+    power_cycle: Optional[bool] = None
+    ipmi_reboot: Optional[bool] = None
+    private_network: Optional[bool] = None
+    remote_management: Optional[bool] = None
 
 
 class Cpu(BaseModel):
-    quantity: int
-    type: str
+    quantity: Optional[int] = None
+    type: Optional[str] = None
 
 
 class Hdd(BaseModel):
-    id: str
-    amount: int
-    size: int
-    type: str
-    unit: str
-    performance_type: str = None
+    id: Optional[str] = None
+    amount: Optional[int] = None
+    size: Optional[int] = None
+    type: Optional[str] = None
+    unit: Optional[str] = None
+    performance_type: Optional[str] = None
 
 
 class PciCard(BaseModel):
-    description: str
+    description: Optional[str] = None
 
 
 class Ram(BaseModel):
-    size: int
-    unit: str
+    size: Optional[int] = None
+    unit: Optional[str] = None
 
 
 class ServerSpecs(BaseModel):
-    brand: str
-    chassis: str
-    cpu: Cpu
-    hardware_raid_capable: bool
-    hdd: list[Hdd]
-    pci_cards: list[PciCard]
-    ram: Ram
+    brand: Optional[str] = None
+    chassis: Optional[str] = None
+    cpu: Optional[Cpu] = None
+    hardware_raid_capable: Optional[bool] = None
+    hdd: Optional[list[Hdd]] = None
+    pci_cards: Optional[list[PciCard]] = None
+    ram: Optional[Ram] = None
 
 
 class DedicatedServer(BaseModel):
-    asset_id: str
-    contract: Contract
-    feature_availability: FeatureAvailability
-    id: str
+    asset_id: Optional[str] = None
+    contract: Optional[Contract] = None
+    feature_availability: Optional[FeatureAvailability] = None
+    id: Optional[str] = None
     is_private_network_enabled: Optional[bool] = None
     is_private_network_capable: Optional[bool] = None
     is_redundant_private_network_capable: Optional[bool] = None
-    location: Location
+    location: Optional[Location] = None
     network_interfaces: NetworkInterfaces
     power_ports: Optional[list[Port]] = None
     privateNetworks: Optional[list[PrivateNetwork]] = None
-    rack: Rack
-    serial_number: str
-    specs: ServerSpecs
+    rack: Optional[Rack] = None
+    serial_number: Optional[str] = None
+    specs: Optional[ServerSpecs] = None

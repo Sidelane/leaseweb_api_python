@@ -4,17 +4,18 @@ from typing import Optional
 
 class Action(BaseModel):
     last_triggered_at: Optional[str] = None
-    type: str
+    type: Optional[str] = None
 
 
 class NotificationSetting(BaseModel):
     actions: Optional[list[Action]] = None
-    frequency: str
-    id: str
+    frequency: Optional[str] = None
+    id: Optional[str] = None
     last_checked_at: Optional[str] = None
-    threshold: str
+    threshold: Optional[str] = None
     threshold_exceeded_at: Optional[str] = None
-    unit: str
+    unit: Optional[str] = None
 
 
-class DataTrafficNotificationSetting(NotificationSetting): ...
+class DataTrafficNotificationSetting(NotificationSetting):
+    pass

@@ -5,11 +5,11 @@ from .enums import RackType
 
 
 class Port(BaseModel):
-    name: str
-    port: str
+    name: Optional[str] = None
+    port: Optional[str] = None
 
 
 class Rack(BaseModel):
-    id: str
+    id: Optional[str] = None
     capacity: Optional[str] = None
-    type: RackType
+    type: Optional[RackType] = None

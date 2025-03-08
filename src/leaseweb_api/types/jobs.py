@@ -4,23 +4,23 @@ from datetime import datetime
 
 
 class Os(BaseModel):
-    architecture: str
-    family: str
-    name: str
-    type: str
-    version: str
+    architecture: Optional[str] = None
+    family: Optional[str] = None
+    name: Optional[str] = None
+    type: Optional[str] = None
+    version: Optional[str] = None
 
 
 class Partition(BaseModel):
-    filesystem: str
+    filesystem: Optional[str] = None
     mountpoint: Optional[str] = None
-    size: str
+    size: Optional[str] = None
 
 
 class ServerJobPayload(BaseModel):
-    fileserver_base_url: str
+    fileserver_base_url: Optional[str] = None
     pop: Optional[str] = None
-    power_cycle: bool
+    power_cycle: Optional[bool] = None
     is_unassigned_server: Optional[bool] = None
     server_id: Optional[str] = None
     job_type: Optional[str] = None
@@ -35,37 +35,37 @@ class ServerJobPayload(BaseModel):
 
 
 class Progress(BaseModel):
-    canceled: int
-    expired: int
-    failed: int
-    finished: int
-    inprogress: int
-    pending: int
-    percentage: int
-    total: int
-    waiting: int
+    canceled: Optional[int] = None
+    expired: Optional[int] = None
+    failed: Optional[int] = None
+    finished: Optional[int] = None
+    inprogress: Optional[int] = None
+    pending: Optional[int] = None
+    percentage: Optional[int] = None
+    total: Optional[int] = None
+    waiting: Optional[int] = None
 
 
 class Task(BaseModel):
-    description: str
+    description: Optional[str] = None
     error_message: Optional[str] = None
-    flow: str
-    on_error: str
-    status: str
-    status_timestamps: str
-    uuid: str
+    flow: Optional[str] = None
+    on_error: Optional[str] = None
+    status: Optional[str] = None
+    status_timestamps: Optional[str] = None
+    uuid: Optional[str] = None
 
 
 class Job(BaseModel):
-    server_id: str
-    created_at: datetime
-    flow: str
-    is_running: bool
-    node: str
-    payload: ServerJobPayload
-    progress: Progress
-    status: str
+    server_id: Optional[str] = None
+    created_at: Optional[datetime] = None
+    flow: Optional[str] = None
+    is_running: Optional[bool] = None
+    node: Optional[str] = None
+    payload: Optional[ServerJobPayload] = None
+    progress: Optional[Progress] = None
+    status: Optional[str] = None
     tasks: Optional[list[Task]] = None
-    type: str
-    updated_at: datetime
-    uuid: str
+    type: Optional[str] = None
+    updated_at: Optional[datetime] = None
+    uuid: Optional[str] = None

@@ -7,12 +7,12 @@ from .rack import Port
 
 
 class OperationNetworkInterface(BaseModel):
-    link_speed: str
-    oper_status: str
-    status: str
-    switch_interface: str
-    switch_name: str
-    type: str
+    link_speed: Optional[str] = None
+    oper_status: Optional[str] = None
+    status: Optional[str] = None
+    switch_interface: Optional[str] = None
+    switch_name: Optional[str] = None
+    type: Optional[str] = None
 
 
 class NetworkInterface(BaseModel):
@@ -25,54 +25,54 @@ class NetworkInterface(BaseModel):
 
 
 class NetworkInterfaces(BaseModel):
-    public: NetworkInterface
-    internal: NetworkInterface
-    remote_management: NetworkInterface
+    public: Optional[NetworkInterface] = None
+    internal: Optional[NetworkInterface] = None
+    remote_management: Optional[NetworkInterface] = None
 
 
 class PrivateNetwork(BaseModel):
-    id: str
-    link_speed: int
-    status: str
-    dhcp: str
-    subnet: str
-    vlan_id: str
+    id: Optional[str] = None
+    link_speed: Optional[int] = None
+    status: Optional[str] = None
+    dhcp: Optional[str] = None
+    subnet: Optional[str] = None
+    vlan_id: Optional[str] = None
 
 
 class Subnet(BaseModel):
-    quantity: int
-    subnet_size: str
-    network_type: NetworkType
+    quantity: Optional[int] = None
+    subnet_size: Optional[str] = None
+    network_type: Optional[NetworkType] = None
 
 
 class NetworkTraffic(BaseModel):
-    type: str = None
-    connectivity_type: str = None
-    traffic_type: str = None
-    datatraffic_unit: str = None
-    datatraffic_limit: int = None
+    type: Optional[str] = None
+    connectivity_type: Optional[str] = None
+    traffic_type: Optional[str] = None
+    datatraffic_unit: Optional[str] = None
+    datatraffic_limit: Optional[int] = None
 
 
 class Ddos(BaseModel):
-    detection_profile: DetectionProfile
-    protection_type: ProtectionType
+    detection_profile: Optional[DetectionProfile] = None
+    protection_type: Optional[ProtectionType] = None
 
 
 class Ip4(BaseModel):
     ddos: Optional[Ddos] = None
-    floating_ip: bool
-    gateway: str
-    ip: str
-    main_ip: bool
-    network_type: NetworkType
+    floating_ip: Optional[bool] = None
+    gateway: Optional[str] = None
+    ip: Optional[str] = None
+    main_ip: Optional[bool] = None
+    network_type: Optional[NetworkType] = None
     null_routed: Optional[bool] = None
     reverse_lookup: Optional[str] = None
-    version: int
+    version: Optional[int] = None
 
 
 class Nullroute(BaseModel):
-    automated_unnulling_at: datetime = None
-    comment: str
-    null_level: int
-    nulled_at: datetime
+    automated_unnulling_at: Optional[datetime] = None
+    comment: Optional[str] = None
+    null_level: Optional[int] = None
+    nulled_at: Optional[datetime] = None
     ticket_id: Optional[str] = None

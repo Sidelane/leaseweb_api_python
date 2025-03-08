@@ -54,10 +54,10 @@ class Aggregation(str, Enum):
 
 
 class ShowMetricsParameter(BaseModel):
-    start: datetime
-    to: datetime
+    start: Optional[datetime] = None
+    to: Optional[datetime] = None
     granularity: Optional[Granularity] = None
-    aggregation: Aggregation
+    aggregation: Optional[Aggregation] = None
 
 
 class ListJobsParameter(BaseModel):

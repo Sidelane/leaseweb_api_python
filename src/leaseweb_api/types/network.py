@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from typing import Optional
 
-from .enums import NetworkType
+from .enums import NetworkType, DetectionProfile, ProtectionType
 from .rack import Port
 
 
@@ -41,3 +41,20 @@ class NetworkTraffic(BaseModel):
     traffic_type: str = None
     datatraffic_unit: str = None
     datatraffic_limit: int = None
+
+
+class Ddos(BaseModel):
+    detection_profile: DetectionProfile
+    protection_type: ProtectionType
+
+
+class Ip4(BaseModel):
+    ddos: Optional[Ddos] = None
+    floating_ip: bool
+    gateway: str
+    ip: str
+    main_ip: bool
+    network_type: NetworkType
+    null_routed: Optional[bool] = None
+    reverse_lookup: Optional[str] = None
+    version: int

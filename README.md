@@ -1,6 +1,10 @@
 # Leaseweb Developer API Python Wrapper
 An extended python api-wrapper for the [Leaseweb Developer API](https://developer.leaseweb.com/docs/). Supports all methods and types of responses.
 
+## Roadmap
+
+The first step is to fully implement the Dedicated Services API.
+
 ## Installation
 
 Via uv

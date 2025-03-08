@@ -1,11 +1,12 @@
 from .config import BASE_URL
-from .helper import make_http_request, camel_to_snake, nested_camel_to_snake
+from .helper import make_http_get_request, camel_to_snake, nested_camel_to_snake
 from .auth_provider import LeasewebAuthenticationProvider
 from .types.error import APIError
 from .types.dedicated_server import DedicatedServer
+from .types.network import Ip4
 
 
-class DedicatedServers:
+class DedicatedServices:
 
     def __init__(self, auth: LeasewebAuthenticationProvider):
         self._auth = auth
@@ -17,7 +18,7 @@ class DedicatedServers:
             query_parameters = {
                 k: v for k, v in query_parameters.dict().items() if v is not None
             }
-        r = make_http_request(
+        r = make_http_get_request(
             "GET",
             f"{BASE_URL}/bareMetals/v2/servers",
             self._auth.get_auth_header(),
@@ -42,7 +43,7 @@ class DedicatedServers:
                 return APIError(**converted_data)
 
     def get_server(self, server_id: str) -> DedicatedServer | APIError:
-        r = make_http_request(
+        r = make_http_get_request(
             "GET",
             f"{BASE_URL}/bareMetals/v2/servers/{server_id}",
             self._auth.get_auth_header(),
@@ -55,6 +56,30 @@ class DedicatedServers:
                     camel_to_snake(k): nested_camel_to_snake(v) for k, v in data.items()
                 }
                 return DedicatedServer.model_validate(server)
+            case _:
+                converted_data = {camel_to_snake(k): v for k, v in data.items()}
+                if "error_code" not in converted_data:
+                    converted_data["error_code"] = str(r.status_code)
+                return APIError(**converted_data)
+
+
+    def list_ips(self, server_id: str) -> list[Ip4] | APIError:
+        r = make_http_get_request(
+            "GET",
+            f"{BASE_URL}/bareMetals/v2/servers/{server_id}/ips",
+            self._auth.get_auth_header(),
+        )
+        data = r.json()
+
+        match r.status_code:
+            case 200:
+                ret = []
+                for ip in data["ips"]:
+                    ip = {
+                        camel_to_snake(k): nested_camel_to_snake(v) for k, v in ip.items()
+                    }
+                    ret.append(Ip4.model_validate(ip))
+                return ret
             case _:
                 converted_data = {camel_to_snake(k): v for k, v in data.items()}
                 if "error_code" not in converted_data:

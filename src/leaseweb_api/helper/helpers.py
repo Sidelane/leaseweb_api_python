@@ -14,7 +14,7 @@ def nested_camel_to_snake(value):
     return value
 
 
-def make_http_request(
+def make_http_get_request(
     method: str, url: str, headers: dict[str, str], params: dict[str, int | str] = None
 ) -> Response:
 

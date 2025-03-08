@@ -5,7 +5,7 @@ from .types.error import APIError
 from .types.dedicated_server import DedicatedServer
 from .types.metrics import MetricValues
 from .types.network import Ip4, Nullroute, OperationNetworkInterface
-from .types.notification import NotificationSetting
+from .types.notification import NotificationSetting, DataTrafficNotificationSetting
 from .types.parameters import (
     QueryParameters,
     NetworkTypeParameter,
@@ -315,6 +315,24 @@ class DedicatedServices:
         match r.status_code:
             case 200:
                 return NotificationSetting.model_validate(data)
+            case _:
+                converted_data = {camel_to_snake(k): v for k, v in data.items()}
+                if "error_code" not in converted_data:
+                    converted_data["error_code"] = str(r.status_code)
+                return APIError(**converted_data)
+            
+    # List data traffic notification settings
+    def get_bandwidth_notification_setting(self, server_id: str) -> DataTrafficNotificationSetting | APIError:
+        r = make_http_get_request(
+            "GET",
+            f"{BASE_URL}/bareMetals/v2/servers/{server_id}/notificationSettings/datatraffic",
+            self._auth.get_auth_header(),
+        )
+        data = r.json()
+
+        match r.status_code:
+            case 200:
+                return DataTrafficNotificationSetting.model_validate(data)
             case _:
                 converted_data = {camel_to_snake(k): v for k, v in data.items()}
                 if "error_code" not in converted_data:

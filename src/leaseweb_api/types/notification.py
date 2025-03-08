@@ -15,3 +15,7 @@ class NotificationSetting(BaseModel):
     threshold = str
     threshold_exceeded_at: Optional[str] = None
     unit: str
+
+
+class DataTrafficNotificationSetting(NotificationSetting):
+    ...

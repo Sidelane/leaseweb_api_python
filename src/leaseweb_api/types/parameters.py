@@ -50,9 +50,10 @@ class Granularity(str, Enum):
 class Aggregation(str, Enum):
     AVG = "AVG"
     PERC_95 = "95TH"
+    SUM = "SUM"
 
 
-class BandwidthMetricsParameter(BaseModel):
+class ShowMetricsParameter(BaseModel):
     start: datetime
     to: datetime
     granularity: Optional[Granularity] = None

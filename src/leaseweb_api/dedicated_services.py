@@ -8,7 +8,7 @@ from .types.network import Ip4, Nullroute, OperationNetworkInterface
 from .types.parameters import (
     QueryParameters,
     NetworkTypeParameter,
-    BandwidthMetricsParameter,
+    ShowMetricsParameter,
 )
 
 
@@ -220,7 +220,7 @@ class DedicatedServices:
 
     # Show bandwidth metrics
     def get_bandwidth_metrics(
-        self, server_id: str, query_parameters: BandwidthMetricsParameter
+        self, server_id: str, query_parameters: ShowMetricsParameter
     ) -> MetricValues | APIError:
 
         if query_parameters is not None:
@@ -236,6 +236,38 @@ class DedicatedServices:
         r = make_http_get_request(
             "GET",
             f"{BASE_URL}/bareMetals/v2/servers/{server_id}/metrics/bandwidth",
+            self._auth.get_auth_header(),
+            params=query_parameters,
+        )
+        data = r.json()
+
+        match r.status_code:
+            case 200:
+                return MetricValues.model_validate(data["metrics"])
+            case _:
+                converted_data = {camel_to_snake(k): v for k, v in data.items()}
+                if "error_code" not in converted_data:
+                    converted_data["error_code"] = str(r.status_code)
+                return APIError(**converted_data)
+
+    # Show datatraffic metrics
+    def get_datatraffic_metrics(
+        self, server_id: str, query_parameters: ShowMetricsParameter
+    ) -> MetricValues | APIError:
+
+        if query_parameters is not None:
+            query_parameters = {
+                k: v for k, v in query_parameters.dict().items() if v is not None
+            }
+            query_parameters["from"] = query_parameters["start"]
+            query_parameters.pop("start")
+            query_parameters["from"] = query_parameters["from"].isoformat() + "Z"
+            query_parameters["to"] = query_parameters["to"].isoformat() + "Z"
+            query_parameters["aggregation"] = query_parameters["aggregation"].value
+
+        r = make_http_get_request(
+            "GET",
+            f"{BASE_URL}/bareMetals/v2/servers/{server_id}/metrics/datatraffic",
             self._auth.get_auth_header(),
             params=query_parameters,
         )

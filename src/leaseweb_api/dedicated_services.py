@@ -523,7 +523,9 @@ class DedicatedServices:
                 return APIError(**converted_data)
 
     # Show server credentials
-    def get_server_credentials(self, server_id: str, credential_type: CredentialType, username: str) -> dict[str, str] | APIError:
+    def get_server_credentials(
+        self, server_id: str, credential_type: CredentialType, username: str
+    ) -> dict[str, str] | APIError:
         r = make_http_get_request(
             "GET",
             f"{BASE_URL}/bareMetals/v2/servers/{server_id}/credentials/{credential_type.value}/{username}",

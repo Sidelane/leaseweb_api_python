@@ -1,0 +1,17 @@
+from enum import Enum
+
+
+class NetworkType(str, Enum):
+    PUBLIC = "PUBLIC"
+    INTERNAL = "INTERNAL"
+    REMOTE_MANAGEMENT = "REMOTE_MANAGEMENT"
+
+
+class RackType(str, Enum):
+    SHARED = "SHARED"
+    DEDICATED = "DEDICATED"
+    SHARED_10GE = "SHARED_10GE"
+    SHARED_40GE = "SHARED_40GE"
+    SHARED_100GE = "SHARED_100GE"
+    SHARED_200GE = "SHARED_200GE"
+    SHARED_400GE = "SHARED_400GE"

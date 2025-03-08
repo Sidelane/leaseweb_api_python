@@ -1,0 +1,17 @@
+[project]
+name = "leaseweb-api"
+version = "0.1.0"
+description = "Leaseweb API Wrapper"
+authors = [
+    { name = "Andreas Pelger", email = "a.pelger@de.leaseweb.com" }
+]
+readme = "README.md"
+requires-python = ">3.11"
+dependencies = [
+    "pydantic>=2.10.6",
+    "requests>=2.32.3",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

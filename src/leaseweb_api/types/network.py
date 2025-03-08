@@ -11,7 +11,7 @@ class NetworkInterface(BaseModel):
     ip: Optional[str] = None
     null_routed: Optional[bool] = None
     gateway: Optional[str] = None
-    ports: list[Port]
+    ports: Optional[list[Port]] = None
     location_id: Optional[str] = None
 
 

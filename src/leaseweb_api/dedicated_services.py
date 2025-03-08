@@ -3,7 +3,7 @@ from .helper import make_http_get_request, camel_to_snake, nested_camel_to_snake
 from .auth_provider import LeasewebAuthenticationProvider
 from .types.error import APIError
 from .types.dedicated_server import DedicatedServer
-from .types.network import Ip4, Nullroute
+from .types.network import Ip4, Nullroute, NetworkInterface
 from .types.parameters import QueryParameters
 
 
@@ -127,11 +127,43 @@ class DedicatedServices:
         )
         data = r.json()
 
-        ret = []
-        for nullroute in data["nullRoutes"]:
-            nullroute = {
-                camel_to_snake(k): nested_camel_to_snake(v)
-                for k, v in nullroute.items()
-            }
-            ret.append(Nullroute.model_validate(nullroute))
-        return ret
+        match r.status_code:
+            case 200:
+                ret = []
+                for nullroute in data["nullRoutes"]:
+                    nullroute = {
+                        camel_to_snake(k): nested_camel_to_snake(v)
+                        for k, v in nullroute.items()
+                    }
+                    ret.append(Nullroute.model_validate(nullroute))
+                return ret
+            case _:
+                converted_data = {camel_to_snake(k): v for k, v in data.items()}
+                if "error_code" not in converted_data:
+                    converted_data["error_code"] = str(r.status_code)
+                return APIError(**converted_data)
+    
+    # List network interfaces
+    def get_network_interfaces(self, server_id: str) -> list[NetworkInterface] | APIError:
+        r = make_http_get_request(
+            "GET",
+            f"{BASE_URL}/bareMetals/v2/servers/{server_id}/networkInterfaces",
+            self._auth.get_auth_header(),
+        )
+        data = r.json()
+
+        match r.status_code:
+            case 200:
+                ret = []
+                for interface in data["networkInterfaces"]:
+                    interface = {
+                        camel_to_snake(k): nested_camel_to_snake(v)
+                        for k, v in interface.items()
+                    }
+                    ret.append(NetworkInterface.model_validate(interface))
+                return ret
+            case _:
+                converted_data = {camel_to_snake(k): v for k, v in data.items()}
+                if "error_code" not in converted_data:
+                    converted_data["error_code"] = str(r.status_code)
+                return APIError(**converted_data)

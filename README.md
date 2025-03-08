@@ -4,6 +4,7 @@ An extended python api-wrapper for the [Leaseweb Developer API](https://develope
 ## Roadmap
 
 The first step is to fully implement the Dedicated Services API.
+For now we have implemented all GET requests for the Dedicated Services/Dedicated Servers API
 
 ## Installation
 
@@ -14,6 +15,25 @@ $ uv sync
 $ uv build
 $ pip install -e .
 ```
+
+## Usage
+
+``` python
+from leaseweb_api import LeasewebAuthenticationProvider, DedicatedServices, DedicatedServers
+
+auth = LeasewebAuthenticationProvider(api_token)
+
+# Then u can either use the DedicatedServices Class, or DedicatedServers directly
+
+api = DedicatedServices(auth)
+print(api.dedicated_servers.get_servers())
+
+# or
+api = DedicatedServers(auth)
+print(api.get_servers())
+
+```
+
 
 ## Credits
 

@@ -21,6 +21,13 @@ class DedicatedServices:
 
     def __init__(self, auth: LeasewebAuthenticationProvider):
         self._auth = auth
+        self.dedicated_servers = DedicatedServers(auth)
+
+
+class DedicatedServers:
+
+    def __init__(self, auth: LeasewebAuthenticationProvider):
+        self._auth = auth
 
     # List servers
     def list_servers(

@@ -69,3 +69,22 @@ class Job(BaseModel):
     type: Optional[str] = None
     updated_at: Optional[datetime] = None
     uuid: Optional[str] = None
+
+
+class LastClientRequest(BaseModel):
+    relay_agent: Optional[str] = None
+    type: Optional[str] = None
+    user_agent: Optional[str] = None
+
+
+class Lease(BaseModel):
+    bootfile: Optional[str] = None
+    created_at: Optional[str] = None
+    gateway: Optional[str] = None
+    hostname: Optional[str] = None
+    ip: Optional[str] = None
+    last_client_request: Optional[LastClientRequest] = None
+    mac: Optional[str] = None
+    netmask: Optional[str] = None
+    site: Optional[str] = None
+    updated_at: Optional[str] = None

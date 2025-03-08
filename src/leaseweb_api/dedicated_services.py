@@ -14,7 +14,7 @@ from .types.parameters import (
     ListJobsParameter,
 )
 from .types.credentials import Credential, CredentialWithoutPassword, CredentialType
-from .types.jobs import Job
+from .types.jobs import Job, Lease
 
 
 class DedicatedServices:
@@ -592,6 +592,49 @@ class DedicatedServices:
                     camel_to_snake(k): nested_camel_to_snake(v) for k, v in data.items()
                 }
                 return Job.model_validate(job)
+            case _:
+                converted_data = {camel_to_snake(k): v for k, v in data.items()}
+                if "error_code" not in converted_data:
+                    converted_data["error_code"] = str(r.status_code)
+                return APIError(**converted_data)
+
+    # List DHCP reservations
+    def get_dhcp_reservations(self, server_id: str) -> Lease | APIError:
+        r = make_http_get_request(
+            "GET",
+            f"{BASE_URL}/bareMetals/v2/servers/{server_id}/leases",
+            self._auth.get_auth_header(),
+        )
+        data = r.json()
+
+        match r.status_code:
+            case 200:
+                ret = []
+                for lease in data["leases"]:
+                    lease = {
+                        camel_to_snake(k): nested_camel_to_snake(v)
+                        for k, v in lease.items()
+                    }
+                    ret.append(Lease.model_validate(lease))
+                return ret
+            case _:
+                converted_data = {camel_to_snake(k): v for k, v in data.items()}
+                if "error_code" not in converted_data:
+                    converted_data["error_code"] = str(r.status_code)
+                return APIError(**converted_data)
+
+    # Show power status
+    def get_power_status(self, server_id: str) -> dict[str, str] | APIError:
+        r = make_http_get_request(
+            "GET",
+            f"{BASE_URL}/bareMetals/v2/servers/{server_id}/powerInfo",
+            self._auth.get_auth_header(),
+        )
+        data = r.json()
+
+        match r.status_code:
+            case 200:
+                return data
             case _:
                 converted_data = {camel_to_snake(k): v for k, v in data.items()}
                 if "error_code" not in converted_data:

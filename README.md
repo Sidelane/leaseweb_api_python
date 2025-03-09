@@ -6,6 +6,11 @@ An extended python api-wrapper for the [Leaseweb Developer API](https://develope
 The first step is to fully implement the Dedicated Services API.
 For now we have implemented all GET requests for the Dedicated Services/Dedicated Servers API
 
+1. Implement all of Dedicated Services/Dedicated Servers
+2. Add Test for all Methods in Dedicated Services/Dedicated Servers
+
+Once all of the Dedicated Servers API is implemented, it will be decided with which category we continue.
+
 ## Installation
 
 Via uv

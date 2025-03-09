@@ -26,3 +26,7 @@ def make_http_get_request(
         unpacked = [(k, v) for k, v in params.items()]
         url += "?" + "&".join([f"{k}={v}" for k, v in unpacked])
     return request(method, url, headers=headers, json=json_data)
+
+
+def build_put_header(token: str) -> dict[str, str]:
+    return {"X-LSW-Auth": token, "Content-Type": "application/json"}

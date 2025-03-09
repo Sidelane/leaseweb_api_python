@@ -76,3 +76,15 @@ class Nullroute(BaseModel):
     null_level: Optional[int] = None
     nulled_at: Optional[datetime] = None
     ticket_id: Optional[str] = None
+
+
+class IPUpdate(BaseModel):
+    ddos: Optional[Ddos] = None
+    floating_ip: Optional[bool] = None
+    gateway: Optional[str] = None
+    ip: Optional[str] = None
+    main_ip: Optional[bool] = None
+    network_type: Optional[str] = None
+    null_routed: Optional[bool] = None
+    reverse_lookup: Optional[str] = None
+    version: Optional[int] = None

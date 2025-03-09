@@ -1,12 +1,17 @@
 from requests.exceptions import JSONDecodeError
 
 from .config import BASE_URL
-from .helper import make_http_get_request, camel_to_snake, nested_camel_to_snake
+from .helper import (
+    make_http_get_request,
+    camel_to_snake,
+    nested_camel_to_snake,
+    build_put_header,
+)
 from .auth_provider import LeasewebAuthenticationProvider
 from .types.error import APIError
 from .types.dedicated_server import DedicatedServer
 from .types.metrics import MetricValues
-from .types.network import Ip4, Nullroute, OperationNetworkInterface
+from .types.network import Ip4, Nullroute, OperationNetworkInterface, IPUpdate
 from .types.notification import NotificationSetting, DataTrafficNotificationSetting
 from .types.hardware import HardwareInformation
 from .types.parameters import (
@@ -17,6 +22,7 @@ from .types.parameters import (
 )
 from .types.credentials import Credential, CredentialWithoutPassword, CredentialType
 from .types.jobs import Job, Lease
+from .types.enums import DetectionProfile
 
 
 class DedicatedServices:
@@ -86,12 +92,10 @@ class DedicatedServers:
 
     # Update server
     def set_reference(self, server_id: str, reference: str) -> APIError | None:
-        headers = self._auth.get_auth_header()
-        headers["Content-Type"] = "application/json"
         r = make_http_get_request(
             "PUT",
             f"{BASE_URL}/bareMetals/v2/servers/{server_id}",
-            headers,
+            headers=build_put_header(self._auth.get_token()),
             params=None,
             json_data={"reference": reference},
         )
@@ -150,6 +154,38 @@ class DedicatedServers:
                     camel_to_snake(k): nested_camel_to_snake(v) for k, v in data.items()
                 }
                 return Ip4.model_validate(ip)
+            case _:
+                converted_data = {camel_to_snake(k): v for k, v in data.items()}
+                if "error_code" not in converted_data:
+                    converted_data["error_code"] = str(r.status_code)
+                return APIError(**converted_data)
+
+    # Update an IP
+    def update_server_ip(
+        self,
+        server_id: str,
+        ip: str,
+        detection_profile: DetectionProfile = None,
+        reverse_lookup: str = None,
+    ) -> IPUpdate | APIError:
+        body = {}
+        if detection_profile is not None:
+            body["detectionProfile"] = detection_profile.value
+        if reverse_lookup is not None:
+            body["reverseLookup"] = reverse_lookup
+
+        r = make_http_get_request(
+            "PUT",
+            f"{BASE_URL}/bareMetals/v2/servers/{server_id}/ips/{ip}",
+            headers=build_put_header(self._auth.get_token()),
+            params=None,
+            json_data=body,
+        )
+        data = r.json()
+
+        match r.status_code:
+            case 200:
+                return IPUpdate.model_validate(data)
             case _:
                 converted_data = {camel_to_snake(k): v for k, v in data.items()}
                 if "error_code" not in converted_data:

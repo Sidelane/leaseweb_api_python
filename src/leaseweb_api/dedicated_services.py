@@ -41,6 +41,42 @@ class DedicatedServers:
     def list_servers(
         self, query_parameters: dict[str, int | str] = None
     ) -> list[DedicatedServer] | APIError:
+        """
+    Retrieve a list of dedicated servers from the Leaseweb API.
+    
+    This method fetches all dedicated servers associated with the authenticated account
+    and returns them as a list of DedicatedServer objects. The results can be filtered
+    using query parameters.
+    
+    Args:
+        query_parameters: Optional dictionary containing query parameters to filter results.
+            Supported parameters include:
+            - limit: Maximum number of servers to return
+            - offset: Number of servers to skip for pagination
+            - reference: Filter by server reference
+            - ip: Filter by IP address
+            - macAddress: Filter by MAC address
+            - site: Filter by data center location
+            - privateRackId: Filter by private rack ID
+            - privateNetworkCapable: Filter by private network capability (bool)
+            - privateNetworkEnabled: Filter by private network status (bool)
+            
+    Returns:
+        Either a list of DedicatedServer objects when successful (HTTP 200), or an
+        APIError object containing error details when the API request fails.
+        
+    Examples:
+        # Get all servers
+        servers = dedicated_servers.list_servers()
+        
+        # Get servers with pagination
+        params = {"limit": 10, "offset": 20}
+        servers = dedicated_servers.list_servers(params)
+        
+        # Filter by reference
+        params = {"reference": "my-server-reference"}
+        servers = dedicated_servers.list_servers(params)
+    """
         if query_parameters is not None:
             query_parameters = {
                 k: v for k, v in query_parameters.dict().items() if v is not None
@@ -71,6 +107,29 @@ class DedicatedServers:
 
     # Get server
     def get_server(self, server_id: str) -> DedicatedServer | APIError:
+        """
+        Retrieve a specific dedicated server's details from the Leaseweb API.
+        
+        This method fetches detailed information about a single dedicated server
+        identified by its ID.
+        
+        Args:
+            server_id: The unique identifier of the server to retrieve.
+                This is usually the Leaseweb reference number for the server.
+        
+        Returns:
+            A DedicatedServer object containing all server details when successful (HTTP 200),
+            or an APIError object containing error details when the API request fails.
+            
+        Examples:
+            # Get details for a specific server
+            server = dedicated_servers.get_server("12345678")
+            
+            # Access properties of the returned server
+            if not isinstance(server, APIError):
+                print(f"Server name: {server.reference}")
+                print(f"Server IP: {server.ip}")
+        """
         r = make_http_get_request(
             "GET",
             f"{BASE_URL}/bareMetals/v2/servers/{server_id}",

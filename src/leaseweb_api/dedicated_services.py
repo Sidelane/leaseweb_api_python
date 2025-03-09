@@ -259,6 +259,31 @@ class DedicatedServers:
                 if "error_code" not in converted_data:
                     converted_data["error_code"] = str(r.status_code)
                 return APIError(**converted_data)
+            
+    # Delete a server from a private network
+    def remove_server_from_private_network(
+        self, server_id: str, private_network_id: str
+    ) -> APIError | None:
+        r = make_http_get_request(
+            "DELETE",
+            f"{BASE_URL}/bareMetals/v2/servers/{server_id}/privateNetworks/{private_network_id}",
+            self._auth.get_auth_header(),
+        )
+        
+        try:
+            data = r.json()
+        except JSONDecodeError:
+            data = None
+            pass
+
+        match r.status_code:
+            case 202:
+                return None
+            case _:
+                converted_data = {camel_to_snake(k): v for k, v in data.items()}
+                if "error_code" not in converted_data:
+                    converted_data["error_code"] = str(r.status_code)
+                return APIError(**converted_data)
 
     # List network interfaces
     def get_network_interfaces(

@@ -192,6 +192,42 @@ class DedicatedServers:
                     converted_data["error_code"] = str(r.status_code)
                 return APIError(**converted_data)
 
+    # Null route an IP
+    def nullroute_ip(self, server_id: str, ip: str) -> APIError | None:
+        r = make_http_get_request(
+            "POST",
+            f"{BASE_URL}/bareMetals/v2/servers/{server_id}/ips/{ip}/null",
+            headers=build_put_header(self._auth.get_token()),
+        )
+        data = r.json()
+
+        match r.status_code:
+            case 202:
+                return IPUpdate.model_validate(data)
+            case _:
+                converted_data = {camel_to_snake(k): v for k, v in data.items()}
+                if "error_code" not in converted_data:
+                    converted_data["error_code"] = str(r.status_code)
+                return APIError(**converted_data)
+
+    # Un-null route an IP
+    def un_nullroute_ip(self, server_id: str, ip: str) -> APIError | None:
+        r = make_http_get_request(
+            "POST",
+            f"{BASE_URL}/bareMetals/v2/servers/{server_id}/ips/{ip}/unnull",
+            headers=build_put_header(self._auth.get_token()),
+        )
+        data = r.json()
+
+        match r.status_code:
+            case 202:
+                return IPUpdate.model_validate(data)
+            case _:
+                converted_data = {camel_to_snake(k): v for k, v in data.items()}
+                if "error_code" not in converted_data:
+                    converted_data["error_code"] = str(r.status_code)
+                return APIError(**converted_data)
+
     # Show null route history
     def get_nullroute_history(
         self, server_id: str, query_parameters: QueryParameters = None

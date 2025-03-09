@@ -26,6 +26,19 @@ from .types.enums import DetectionProfile, HTTPStatusCodes
 
 
 class DedicatedServices:
+    """
+    A class to interact with Leaseweb's dedicated services API.
+
+    This class provides methods to manage and retrieve information about dedicated servers,
+    including listing servers, getting server details, updating server references, managing IPs,
+    handling network interfaces, and more.
+
+    Attributes:
+        auth (LeasewebAuthenticationProvider): The authentication provider for Leaseweb API.
+
+    Methods:
+        TODO: Add Methods
+    """
 
     def __init__(self, auth: LeasewebAuthenticationProvider):
         self._auth = auth
@@ -151,6 +164,28 @@ class DedicatedServers:
 
     # Update server
     def set_reference(self, server_id: str, reference: str) -> APIError | None:
+        """
+        Update the reference of a specific dedicated server.
+
+        This method updates the reference field of a dedicated server identified by its ID.
+
+        Args:
+            server_id: The unique identifier of the server to update.
+            reference: The new reference value to set for the server.
+
+        Returns:
+            None if the update is successful (HTTP 204), or an APIError object containing
+            error details if the API request fails.
+
+        Examples:
+            # Update the reference of a specific server
+            result = dedicated_servers.set_reference("12345678", "new-reference")
+
+            if result is None:
+                print("Reference updated successfully.")
+            else:
+                print(f"Failed to update reference: {result.error_message}")
+        """
         r = make_http_get_request(
             "PUT",
             f"{BASE_URL}/bareMetals/v2/servers/{server_id}",
@@ -175,6 +210,28 @@ class DedicatedServers:
 
     # List IPs
     def list_ips(self, server_id: str) -> list[Ip4] | APIError:
+        """
+        List all IPs associated with a specific dedicated server.
+
+        This method retrieves all IP addresses associated with a dedicated server identified by its ID.
+
+        Args:
+            server_id: The unique identifier of the server to retrieve IPs for.
+
+        Returns:
+            Either a list of Ip4 objects when successful (HTTP 200), or an APIError object containing
+            error details when the API request fails.
+
+        Examples:
+            # List all IPs for a specific server
+            ips = dedicated_servers.list_ips("12345678")
+
+            if not isinstance(ips, APIError):
+                for ip in ips:
+                    print(f"IP: {ip.ip}")
+            else:
+                print(f"Failed to list IPs: {ips.error_message}")
+        """
         r = make_http_get_request(
             "GET",
             f"{BASE_URL}/bareMetals/v2/servers/{server_id}/ips",
@@ -200,6 +257,34 @@ class DedicatedServers:
 
     # Show a server IP
     def get_server_ip(self, server_id: str, ip: str) -> Ip4 | APIError:
+        """
+        Retrieve detailed information about a specific IP address of a dedicated server.
+        
+        This method fetches information about a single IP address associated with a 
+        dedicated server identified by its ID.
+        
+        Args:
+            server_id: The unique identifier of the server the IP belongs to.
+                This is usually the Leaseweb reference number for the server.
+            ip: The specific IP address to retrieve information about.
+                Should be in standard IPv4 or IPv6 format (e.g., "192.168.1.1").
+        
+        Returns:
+            An Ip4 object containing details about the IP address when successful (HTTP 200),
+            or an APIError object containing error details when the API request fails.
+            
+        Examples:
+            # Get details for a specific IP address
+            ip_info = dedicated_servers.get_server_ip("12345678", "192.168.1.1")
+            
+            # Access properties of the returned IP object
+            if not isinstance(ip_info, APIError):
+                print(f"IP: {ip_info.ip}")
+                print(f"Gateway: {ip_info.gateway}")
+                print(f"Null routed: {ip_info.null_routed}")
+            else:
+                print(f"Failed to get IP info: {ip_info.error_message}")
+        """
         r = make_http_get_request(
             "GET",
             f"{BASE_URL}/bareMetals/v2/servers/{server_id}/ips/{ip}",
@@ -227,6 +312,49 @@ class DedicatedServers:
         detection_profile: DetectionProfile = None,
         reverse_lookup: str = None,
     ) -> IPUpdate | APIError:
+        """
+        Update configuration settings for a specific IP address of a dedicated server.
+        
+        This method allows modifying IP-specific settings such as DDoS detection profile
+        and reverse DNS lookup (PTR record) for a specific IP address.
+        
+        Args:
+            server_id: The unique identifier of the server the IP belongs to.
+                This is usually the Leaseweb reference number for the server.
+            ip: The specific IP address to update.
+                Should be in standard IPv4 or IPv6 format (e.g., "192.168.1.1").
+            detection_profile: Optional DDoS detection profile to apply to this IP.
+                Must be a value from the DetectionProfile enum (e.g., DetectionProfile.ADVANCED_DEFAULT).
+            reverse_lookup: Optional reverse DNS lookup value (PTR record) to set for this IP.
+                This defines the hostname that will be returned when this IP is looked up via rDNS.
+        
+        Returns:
+            An IPUpdate object containing details about the updated IP address when successful (HTTP 200),
+            or an APIError object containing error details when the API request fails.
+            
+        Examples:
+            # Update the DDoS detection profile for an IP
+            result = dedicated_servers.update_server_ip(
+                "12345678", 
+                "192.168.1.1", 
+                detection_profile=DetectionProfile.ADVANCED_DEFAULT
+            )
+            
+            # Update the reverse lookup (PTR record) for an IP
+            result = dedicated_servers.update_server_ip(
+                "12345678", 
+                "192.168.1.1", 
+                reverse_lookup="server1.example.com"
+            )
+            
+            # Update both settings at once
+            result = dedicated_servers.update_server_ip(
+                "12345678", 
+                "192.168.1.1", 
+                detection_profile=DetectionProfile.ADVANCED_DEFAULT,
+                reverse_lookup="server1.example.com"
+            )
+        """
         body = {}
         if detection_profile is not None:
             body["detectionProfile"] = detection_profile.value
@@ -253,6 +381,32 @@ class DedicatedServers:
 
     # Null route an IP
     def nullroute_ip(self, server_id: str, ip: str) -> APIError | None:
+        """
+        Apply null-routing to a specific IP address to mitigate DDoS attacks.
+        
+        This method instructs the network to drop all traffic to and from the specified IP address,
+        which is useful for mitigating DDoS attacks by isolating the targeted IP.
+        
+        Args:
+            server_id: The unique identifier of the server the IP belongs to.
+                This is usually the Leaseweb reference number for the server.
+            ip: The specific IP address to null-route.
+                Should be in standard IPv4 or IPv6 format (e.g., "192.168.1.1").
+        
+        Returns:
+            An IPUpdate object containing details about the update when successful (HTTP 202 Accepted),
+            or an APIError object containing error details when the API request fails.
+                
+        Examples:
+            # Null-route an IP address that's under attack
+            result = dedicated_servers.nullroute_ip("12345678", "192.168.1.1")
+            
+            # Check if the null-routing was successful
+            if not isinstance(result, APIError):
+                print("IP has been successfully null-routed")
+            else:
+                print(f"Failed to null-route IP: {result.error_message}")
+        """
         r = make_http_get_request(
             "POST",
             f"{BASE_URL}/bareMetals/v2/servers/{server_id}/ips/{ip}/null",
@@ -271,6 +425,32 @@ class DedicatedServers:
 
     # Un-null route an IP
     def un_nullroute_ip(self, server_id: str, ip: str) -> APIError | None:
+        """
+        Remove null-routing from a previously null-routed IP address.
+        
+        This method restores normal network traffic to and from the specified IP address
+        after it was previously null-routed, typically when a DDoS attack has subsided.
+        
+        Args:
+            server_id: The unique identifier of the server the IP belongs to.
+                This is usually the Leaseweb reference number for the server.
+            ip: The specific IP address to remove null-routing from.
+                Should be in standard IPv4 or IPv6 format (e.g., "192.168.1.1").
+        
+        Returns:
+            An IPUpdate object containing details about the update when successful (HTTP 202 Accepted),
+            or an APIError object containing error details when the API request fails.
+                
+        Examples:
+            # Remove null-routing from a previously null-routed IP
+            result = dedicated_servers.un_nullroute_ip("12345678", "192.168.1.1")
+            
+            # Check if the removal of null-routing was successful
+            if not isinstance(result, APIError):
+                print("IP has been successfully un-null-routed")
+            else:
+                print(f"Failed to remove null-routing: {result.error_message}")
+        """
         r = make_http_get_request(
             "POST",
             f"{BASE_URL}/bareMetals/v2/servers/{server_id}/ips/{ip}/unnull",
@@ -291,6 +471,42 @@ class DedicatedServers:
     def get_nullroute_history(
         self, server_id: str, query_parameters: QueryParameters = None
     ) -> list[Nullroute]:
+        """
+        Retrieve the null-routing history for a specific dedicated server.
+        
+        This method fetches a list of past null-routing events for a dedicated server,
+        including when the null-routing was applied, any comments, and when it was removed.
+        
+        Args:
+            server_id: The unique identifier of the server to retrieve null-route history for.
+                This is usually the Leaseweb reference number for the server.
+            query_parameters: Optional QueryParameters object containing pagination parameters.
+                - limit: Maximum number of history entries to return
+                - offset: Number of entries to skip for pagination
+                
+        Returns:
+            A list of Nullroute objects containing details about past null-routing events when 
+            successful (HTTP 200), or an APIError object containing error details when the API 
+            request fails.
+                
+        Examples:
+            # Get all null-routing history for a server
+            history = dedicated_servers.get_nullroute_history("12345678")
+            
+            # Get null-routing history with pagination
+            params = QueryParameters(limit=10, offset=0)
+            history = dedicated_servers.get_nullroute_history("12345678", params)
+            
+            # Process the null-routing history
+            if not isinstance(history, APIError):
+                for entry in history:
+                    print(f"IP nulled at: {entry.nulled_at}")
+                    print(f"Reason: {entry.comment}")
+                    if entry.automated_unnulling_at:
+                        print(f"Auto-removal scheduled for: {entry.automated_unnulling_at}")
+            else:
+                print(f"Failed to get null-routing history: {history.error_message}")
+        """
         if query_parameters is not None:
             query_parameters = {
                 k: v for k, v in query_parameters.dict().items() if v is not None
@@ -324,6 +540,37 @@ class DedicatedServers:
     def remove_server_from_private_network(
         self, server_id: str, private_network_id: str
     ) -> APIError | None:
+        """
+        Remove a server from a private network.
+        
+        This method disconnects a dedicated server from a specified private network,
+        removing it from the network's configuration.
+        
+        Args:
+            server_id: The unique identifier of the server to remove from the private network.
+                This is usually the Leaseweb reference number for the server.
+            private_network_id: The unique identifier of the private network to remove the server from.
+                
+        Returns:
+            None when successful (HTTP 202 Accepted), or an APIError object 
+            containing error details when the API request fails.
+                
+        Examples:
+            # Remove a server from a private network
+            result = dedicated_servers.remove_server_from_private_network(
+                "12345678", 
+                "pn-12345"
+            )
+            
+            # Check if the removal was successful
+            if result is None:
+                print("Server successfully removed from private network")
+            else:
+                print(f"Failed to remove server from private network: {result.error_message}")
+                
+        Notes:
+            This method has not been thoroughly tested, as noted in the implementation.
+        """
         r = make_http_get_request(
             "DELETE",
             f"{BASE_URL}/bareMetals/v2/servers/{server_id}/privateNetworks/{private_network_id}",
@@ -350,6 +597,40 @@ class DedicatedServers:
     def add_server_to_private_network(
         self, server_id: str, private_network_id: str, link_speed: int
     ) -> APIError | None:
+        """
+        Add a dedicated server to a private network.
+        
+        This method connects a dedicated server to a specified private network with
+        a given link speed, enabling private communication between servers in the network.
+        
+        Args:
+            server_id: The unique identifier of the server to add to the private network.
+                This is usually the Leaseweb reference number for the server.
+            private_network_id: The unique identifier of the private network to add the server to.
+            link_speed: The speed of the network connection in Mbps.
+                Common values are 100, 1000 (1Gbps), or 10000 (10Gbps).
+                
+        Returns:
+            None when successful (HTTP 204 No Content), or an APIError object 
+            containing error details when the API request fails.
+                
+        Examples:
+            # Add a server to a private network with a 1Gbps link
+            result = dedicated_servers.add_server_to_private_network(
+                "12345678", 
+                "pn-12345",
+                1000
+            )
+            
+            # Check if the addition was successful
+            if result is None:
+                print("Server successfully added to private network")
+            else:
+                print(f"Failed to add server to private network: {result.error_message}")
+                
+        Notes:
+            This method has not been thoroughly tested, as noted in the implementation.
+        """
         r = make_http_get_request(
             "PUT",
             f"{BASE_URL}/bareMetals/v2/servers/{server_id}/privateNetworks/{private_network_id}",

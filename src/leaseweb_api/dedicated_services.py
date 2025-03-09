@@ -429,6 +429,35 @@ class DedicatedServers:
                     converted_data["error_code"] = str(r.status_code)
                 return APIError(**converted_data)
 
+    # Update DDoS notification settings
+    def update_ddos_notification_settings(
+        self, server_id: str, nulling: bool, scrubbing: bool) -> APIError | None:
+
+        nulling = "ENABLED" if nulling else "DISABLED"
+        scrubbing = "ENABLED" if scrubbing else "DISABLED"
+
+        r = make_http_get_request(
+            "PUT",
+            f"{BASE_URL}/bareMetals/v2/servers/{server_id}/notificationSettings/ddos",
+            headers=build_put_header(self._auth.get_token()),
+            json_data={"nulling": nulling, "scrubbing": scrubbing},
+        )
+
+        try:
+            data = r.json()
+        except JSONDecodeError:
+            data = None
+            pass
+
+        match r.status_code:
+            case HTTPStatusCodes.NO_CONTENT:
+                return None
+            case _:
+                converted_data = {camel_to_snake(k): v for k, v in data.items()}
+                if "error_code" not in converted_data:
+                    converted_data["error_code"] = str(r.status_code)
+                return APIError(**converted_data)
+
     # Show bandwidth metrics
     def get_bandwidth_metrics(
         self, server_id: str, query_parameters: ShowMetricsParameter

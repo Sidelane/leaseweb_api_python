@@ -22,7 +22,7 @@ from .types.parameters import (
 )
 from .types.credentials import Credential, CredentialWithoutPassword, CredentialType
 from .types.jobs import Job, Lease
-from .types.enums import DetectionProfile
+from .types.enums import DetectionProfile, HTTPStatusCodes
 
 
 class DedicatedServices:
@@ -54,7 +54,7 @@ class DedicatedServers:
         data = r.json()
 
         match r.status_code:
-            case 200:
+            case HTTPStatusCodes.OK:
                 ret = []
                 for server in data["servers"]:
                     server = {
@@ -79,7 +79,7 @@ class DedicatedServers:
         data = r.json()
 
         match r.status_code:
-            case 200:
+            case HTTPStatusCodes.OK:
                 server = {
                     camel_to_snake(k): nested_camel_to_snake(v) for k, v in data.items()
                 }
@@ -106,7 +106,7 @@ class DedicatedServers:
             pass
 
         match r.status_code:
-            case 204:
+            case HTTPStatusCodes.NO_CONTENT:
                 return None
             case _:
                 converted_data = {camel_to_snake(k): v for k, v in data.items()}
@@ -124,7 +124,7 @@ class DedicatedServers:
         data = r.json()
 
         match r.status_code:
-            case 200:
+            case HTTPStatusCodes.OK:
                 ret = []
                 for ip in data["ips"]:
                     ip = {
@@ -149,7 +149,7 @@ class DedicatedServers:
         data = r.json()
 
         match r.status_code:
-            case 200:
+            case HTTPStatusCodes.OK:
                 ip = {
                     camel_to_snake(k): nested_camel_to_snake(v) for k, v in data.items()
                 }
@@ -184,7 +184,7 @@ class DedicatedServers:
         data = r.json()
 
         match r.status_code:
-            case 200:
+            case HTTPStatusCodes.OK:
                 return IPUpdate.model_validate(data)
             case _:
                 converted_data = {camel_to_snake(k): v for k, v in data.items()}
@@ -202,7 +202,7 @@ class DedicatedServers:
         data = r.json()
 
         match r.status_code:
-            case 202:
+            case HTTPStatusCodes.ACCEPTED:
                 return IPUpdate.model_validate(data)
             case _:
                 converted_data = {camel_to_snake(k): v for k, v in data.items()}
@@ -220,7 +220,7 @@ class DedicatedServers:
         data = r.json()
 
         match r.status_code:
-            case 202:
+            case HTTPStatusCodes.ACCEPTED:
                 return IPUpdate.model_validate(data)
             case _:
                 converted_data = {camel_to_snake(k): v for k, v in data.items()}
@@ -245,7 +245,7 @@ class DedicatedServers:
         data = r.json()
 
         match r.status_code:
-            case 200:
+            case HTTPStatusCodes.OK:
                 ret = []
                 for nullroute in data["nullRoutes"]:
                     nullroute = {
@@ -259,8 +259,9 @@ class DedicatedServers:
                 if "error_code" not in converted_data:
                     converted_data["error_code"] = str(r.status_code)
                 return APIError(**converted_data)
-            
+
     # Delete a server from a private network
+    # TODO: Test this method. I think this is working, but I dont have a server to test it.
     def remove_server_from_private_network(
         self, server_id: str, private_network_id: str
     ) -> APIError | None:
@@ -269,7 +270,7 @@ class DedicatedServers:
             f"{BASE_URL}/bareMetals/v2/servers/{server_id}/privateNetworks/{private_network_id}",
             self._auth.get_auth_header(),
         )
-        
+
         try:
             data = r.json()
         except JSONDecodeError:
@@ -277,7 +278,34 @@ class DedicatedServers:
             pass
 
         match r.status_code:
-            case 202:
+            case HTTPStatusCodes.ACCEPTED:
+                return None
+            case _:
+                converted_data = {camel_to_snake(k): v for k, v in data.items()}
+                if "error_code" not in converted_data:
+                    converted_data["error_code"] = str(r.status_code)
+                return APIError(**converted_data)
+
+    # Add a server to private network
+    # TODO: Test this method. I think this is working, but I dont have a server to test it.
+    def add_server_to_private_network(
+        self, server_id: str, private_network_id: str, link_speed: int
+    ) -> APIError | None:
+        r = make_http_get_request(
+            "PUT",
+            f"{BASE_URL}/bareMetals/v2/servers/{server_id}/privateNetworks/{private_network_id}",
+            self._auth.get_auth_header(),
+            json_data={"linkSpeed": link_speed},
+        )
+
+        try:
+            data = r.json()
+        except JSONDecodeError:
+            data = None
+            pass
+
+        match r.status_code:
+            case HTTPStatusCodes.NO_CONTENT:
                 return None
             case _:
                 converted_data = {camel_to_snake(k): v for k, v in data.items()}
@@ -297,7 +325,7 @@ class DedicatedServers:
         data = r.json()
 
         match r.status_code:
-            case 200:
+            case HTTPStatusCodes.OK:
                 ret = []
                 for interface in data["networkInterfaces"]:
                     interface = {
@@ -324,7 +352,7 @@ class DedicatedServers:
         data = r.json()
 
         match r.status_code:
-            case 200:
+            case HTTPStatusCodes.OK:
                 interface = {
                     camel_to_snake(k): nested_camel_to_snake(v) for k, v in data.items()
                 }
@@ -347,7 +375,7 @@ class DedicatedServers:
         data = r.json()
 
         match r.status_code:
-            case 200:
+            case HTTPStatusCodes.OK:
                 return data
             case _:
                 converted_data = {camel_to_snake(k): v for k, v in data.items()}
@@ -379,7 +407,7 @@ class DedicatedServers:
         data = r.json()
 
         match r.status_code:
-            case 200:
+            case HTTPStatusCodes.OK:
                 return MetricValues.model_validate(data["metrics"])
             case _:
                 converted_data = {camel_to_snake(k): v for k, v in data.items()}
@@ -411,7 +439,7 @@ class DedicatedServers:
         data = r.json()
 
         match r.status_code:
-            case 200:
+            case HTTPStatusCodes.OK:
                 return MetricValues.model_validate(data["metrics"])
             case _:
                 converted_data = {camel_to_snake(k): v for k, v in data.items()}
@@ -431,7 +459,7 @@ class DedicatedServers:
         data = r.json()
 
         match r.status_code:
-            case 200:
+            case HTTPStatusCodes.OK:
                 return data
             case _:
                 converted_data = {camel_to_snake(k): v for k, v in data.items()}
@@ -451,7 +479,7 @@ class DedicatedServers:
         data = r.json()
 
         match r.status_code:
-            case 200:
+            case HTTPStatusCodes.OK:
                 return NotificationSetting.model_validate(data)
             case _:
                 converted_data = {camel_to_snake(k): v for k, v in data.items()}
@@ -471,7 +499,7 @@ class DedicatedServers:
         data = r.json()
 
         match r.status_code:
-            case 200:
+            case HTTPStatusCodes.OK:
                 return DataTrafficNotificationSetting.model_validate(data)
             case _:
                 converted_data = {camel_to_snake(k): v for k, v in data.items()}
@@ -491,7 +519,7 @@ class DedicatedServers:
         data = r.json()
 
         match r.status_code:
-            case 200:
+            case HTTPStatusCodes.OK:
                 return DataTrafficNotificationSetting.model_validate(data)
             case _:
                 converted_data = {camel_to_snake(k): v for k, v in data.items()}
@@ -511,7 +539,7 @@ class DedicatedServers:
         data = r.json()
 
         match r.status_code:
-            case 200:
+            case HTTPStatusCodes.OK:
                 print(data)
             case _:
                 converted_data = {camel_to_snake(k): v for k, v in data.items()}
@@ -529,7 +557,7 @@ class DedicatedServers:
         data = r.json()
 
         match r.status_code:
-            case 200:
+            case HTTPStatusCodes.OK:
                 return data["controlPanels"]
             case _:
                 converted_data = {camel_to_snake(k): v for k, v in data.items()}
@@ -555,7 +583,7 @@ class DedicatedServers:
         data = r.json()
 
         match r.status_code:
-            case 200:
+            case HTTPStatusCodes.OK:
                 return data["operatingSystems"]
             case _:
                 converted_data = {camel_to_snake(k): v for k, v in data.items()}
@@ -575,7 +603,7 @@ class DedicatedServers:
         data = r.json()
 
         match r.status_code:
-            case 200:
+            case HTTPStatusCodes.OK:
                 return data
             case _:
                 converted_data = {camel_to_snake(k): v for k, v in data.items()}
@@ -593,7 +621,7 @@ class DedicatedServers:
         data = r.json()
 
         match r.status_code:
-            case 200:
+            case HTTPStatusCodes.OK:
                 return data["rescueImages"]
             case _:
                 converted_data = {camel_to_snake(k): v for k, v in data.items()}
@@ -613,7 +641,7 @@ class DedicatedServers:
         data = r.json()
 
         match r.status_code:
-            case 200:
+            case HTTPStatusCodes.OK:
                 ret = []
                 for cred in data["credentials"]:
                     cred = {
@@ -641,7 +669,7 @@ class DedicatedServers:
         print(data)
 
         match r.status_code:
-            case 200:
+            case HTTPStatusCodes.OK:
                 ret = []
                 for cred in data["credentials"]:
                     cred = {
@@ -668,7 +696,7 @@ class DedicatedServers:
         data = r.json()
 
         match r.status_code:
-            case 200:
+            case HTTPStatusCodes.OK:
                 return Credential.model_validate(data)
             case _:
                 converted_data = {camel_to_snake(k): v for k, v in data.items()}
@@ -694,7 +722,7 @@ class DedicatedServers:
         data = r.json()
 
         match r.status_code:
-            case 200:
+            case HTTPStatusCodes.OK:
                 ret = []
                 for job in data["jobs"]:
                     job = {
@@ -719,7 +747,7 @@ class DedicatedServers:
         data = r.json()
 
         match r.status_code:
-            case 200:
+            case HTTPStatusCodes.OK:
                 job = {
                     camel_to_snake(k): nested_camel_to_snake(v) for k, v in data.items()
                 }
@@ -740,7 +768,7 @@ class DedicatedServers:
         data = r.json()
 
         match r.status_code:
-            case 200:
+            case HTTPStatusCodes.OK:
                 ret = []
                 for lease in data["leases"]:
                     lease = {
@@ -765,7 +793,7 @@ class DedicatedServers:
         data = r.json()
 
         match r.status_code:
-            case 200:
+            case HTTPStatusCodes.OK:
                 return data
             case _:
                 converted_data = {camel_to_snake(k): v for k, v in data.items()}

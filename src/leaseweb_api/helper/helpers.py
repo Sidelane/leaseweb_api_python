@@ -15,10 +15,14 @@ def nested_camel_to_snake(value):
 
 
 def make_http_get_request(
-    method: str, url: str, headers: dict[str, str], params: dict[str, int | str] = None
+    method: str,
+    url: str,
+    headers: dict[str, str],
+    params: dict[str, int | str] = None,
+    json_data: dict[str, int | str] = None,
 ) -> Response:
 
     if params is not None:
         unpacked = [(k, v) for k, v in params.items()]
         url += "?" + "&".join([f"{k}={v}" for k, v in unpacked])
-    return request(method, url, headers=headers)
+    return request(method, url, headers=headers, json=json_data)

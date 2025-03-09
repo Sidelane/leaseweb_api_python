@@ -1,3 +1,5 @@
+from requests.exceptions import JSONDecodeError
+
 from .config import BASE_URL
 from .helper import make_http_get_request, camel_to_snake, nested_camel_to_snake
 from .auth_provider import LeasewebAuthenticationProvider
@@ -76,6 +78,32 @@ class DedicatedServers:
                     camel_to_snake(k): nested_camel_to_snake(v) for k, v in data.items()
                 }
                 return DedicatedServer.model_validate(server)
+            case _:
+                converted_data = {camel_to_snake(k): v for k, v in data.items()}
+                if "error_code" not in converted_data:
+                    converted_data["error_code"] = str(r.status_code)
+                return APIError(**converted_data)
+
+    # Update server
+    def set_reference(self, server_id: str, reference: str) -> APIError | None:
+        headers = self._auth.get_auth_header()
+        headers["Content-Type"] = "application/json"
+        r = make_http_get_request(
+            "PUT",
+            f"{BASE_URL}/bareMetals/v2/servers/{server_id}",
+            headers,
+            params=None,
+            json_data={"reference": reference},
+        )
+        try:
+            data = r.json()
+        except JSONDecodeError:
+            data = None
+            pass
+
+        match r.status_code:
+            case 204:
+                return None
             case _:
                 converted_data = {camel_to_snake(k): v for k, v in data.items()}
                 if "error_code" not in converted_data:

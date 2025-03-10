@@ -2701,7 +2701,7 @@ class DedicatedServers:
                 return APIError(**converted_data)
 
     # Power cycle a server
-    def power_cycle_server(self, server_id: str) -> None | APIError:
+    def launch_power_cycle(self, server_id: str) -> None | APIError:
         """
         Power cycle a dedicated server.
 
@@ -2719,7 +2719,7 @@ class DedicatedServers:
 
         Examples:
             # Power cycle a server
-            result = dedicated_servers.power_cycle_server("12345678")
+            result = dedicated_servers.launch_power_cycle("12345678")
 
             # Check if the power cycle was successful
             if result is None:
@@ -2978,6 +2978,101 @@ class DedicatedServers:
         match r.status_code:
             case HTTPStatusCodes.OK:
                 return data
+            case _:
+                converted_data = {camel_to_snake(k): v for k, v in data.items()}
+                if "error_code" not in converted_data:
+                    converted_data["error_code"] = str(r.status_code)
+                return APIError(**converted_data)
+
+    # Power off server
+    def power_off(self, server_id: str) -> None | APIError:
+        """
+        Power off a dedicated server.
+
+        This method initiates a power off operation for a dedicated server, which shuts down
+        the server by turning off the power. This operation can help conserve energy and
+        prevent damage to the server's hardware components.
+
+        Args:
+            server_id: The unique identifier of the server to power off.
+                This is usually the Leaseweb reference number for the server.
+
+        Returns:
+            None when successful (HTTP 204 No Content), or an APIError object containing error details when
+            the API request fails.
+
+        Examples:
+            # Power off a server
+            result = dedicated_servers.power_off("12345678")
+
+            # Check if the power off was successful
+            if result is None:
+                print("Server powered off successfully")
+            else:
+                print(f"Failed to power off server: {result.error_message}")
+        """
+        r = make_http_get_request(
+            "POST",
+            f"{BASE_URL}/bareMetals/v2/servers/{server_id}/powerOff",
+            self._auth.get_auth_header(),
+        )
+
+        try:
+            data = r.json()
+        except JSONDecodeError:
+            data = None
+            pass
+
+        match r.status_code:
+            case HTTPStatusCodes.NO_CONTENT:
+                return None
+            case _:
+                converted_data = {camel_to_snake(k): v for k, v in data.items()}
+                if "error_code" not in converted_data:
+                    converted_data["error_code"] = str(r.status_code)
+                return APIError(**converted_data)
+
+    # Power on server
+    def power_on(self, server_id: str) -> None | APIError:
+        """
+        Power on a dedicated server.
+
+        This method initiates a power on operation for a dedicated server, which starts the server
+        by turning on the power. This operation can be used to boot a server that is currently powered off.
+
+        Args:
+            server_id: The unique identifier of the server to power on.
+                This is usually the Leaseweb reference number for the server.
+
+        Returns:
+            None when successful (HTTP 204 No Content), or an APIError object containing error details when
+            the API request fails.
+
+        Examples:
+            # Power on a server
+            result = dedicated_servers.power_on("12345678")
+
+            # Check if the power on was successful
+            if result is None:
+                print("Server powered on successfully")
+            else:
+                print(f"Failed to power on server: {result.error_message}")
+        """
+        r = make_http_get_request(
+            "POST",
+            f"{BASE_URL}/bareMetals/v2/servers/{server_id}/powerOn",
+            self._auth.get_auth_header(),
+        )
+
+        try:
+            data = r.json()
+        except JSONDecodeError:
+            data = None
+            pass
+
+        match r.status_code:
+            case HTTPStatusCodes.NO_CONTENT:
+                return None
             case _:
                 converted_data = {camel_to_snake(k): v for k, v in data.items()}
                 if "error_code" not in converted_data:

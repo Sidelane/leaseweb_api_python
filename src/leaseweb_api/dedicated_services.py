@@ -2343,6 +2343,49 @@ class DedicatedServers:
                     converted_data["error_code"] = str(r.status_code)
                 return APIError(**converted_data)
 
+    # Expire active Job
+    def expire_job(self, server_id: str) -> Job | APIError:
+        """
+        Expire an active job for a dedicated server.
+
+        This method expires a currently active job for a dedicated server, stopping the
+        execution of the job and preventing any further changes to the server's configuration.
+
+        Args:
+            server_id: The unique identifier of the server to cancel the active job for.
+                This is usually the Leaseweb reference number for the server.
+
+        Returns:
+            A Job object containing details about the canceled job when successful (HTTP 200),
+            or an APIError object containing error details when the API request fails.
+
+        Examples:
+            # Cancel an active job for a server
+            job = dedicated_servers.expire_job("12345678")
+
+            # Access properties of the expired job
+            if not isinstance(job, APIError):
+                print(f"Job ID: {job.id}")
+                print(f"Status: {job.status}")
+            else:
+                print(f"Failed to expire job: {job.error_message}")
+        """
+        r = make_http_get_request(
+            "POST",
+            f"{BASE_URL}/bareMetals/v2/servers/{server_id}/expireActiveJob",
+            self._auth.get_auth_header(),
+        )
+        data = r.json()
+
+        match r.status_code:
+            case HTTPStatusCodes.OK:
+                return Job.model_validate(data)
+            case _:
+                converted_data = {camel_to_snake(k): v for k, v in data.items()}
+                if "error_code" not in converted_data:
+                    converted_data["error_code"] = str(r.status_code)
+                return APIError(**converted_data)
+
     # List jobs
     def get_jobs(
         self, server_id: str, query_parameter: ListJobsParameter = None

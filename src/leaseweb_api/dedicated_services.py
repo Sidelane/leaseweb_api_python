@@ -2386,6 +2386,60 @@ class DedicatedServers:
                     converted_data["error_code"] = str(r.status_code)
                 return APIError(**converted_data)
 
+    # Launch hardware scan
+    def launch_hardware_scan(
+        self, server_id: str, callback_url: str = None, power_cycle: bool = None
+    ) -> Job | APIError:
+        """
+        Launch a hardware scan for a dedicated server.
+
+        This method initiates a hardware scan for a dedicated server, which checks the
+        server's hardware components for any issues or failures. The scan can be performed
+        with an optional power cycle to reset the server before scanning.
+
+        Args:
+            server_id: The unique identifier of the server to launch a hardware scan for.
+                This is usually the Leaseweb reference number for the server.
+            callback_url: Optional URL to receive a notification when the hardware scan is completed.
+                If provided, a POST request will be sent to this URL with the scan results.
+            power_cycle: Optional flag to indicate whether the server should be power cycled before scanning.
+                If set to True, the server will be restarted before the hardware scan is performed.
+
+        Returns:
+            A Job object containing details about the hardware scan job when successful (HTTP 200),
+            or an APIError object containing error details when the API request fails.
+
+        Examples:
+            # Launch a hardware scan for a server
+            job = dedicated_servers.launch_hardware_scan("12345678")
+
+            # Access properties of the hardware scan job
+            if not isinstance(job, APIError):
+                print(f"Job ID: {job.id}")
+                print(f"Type: {job.type}")
+                print(f"Status: {job.status}")
+            else:
+                print(f"Failed to launch hardware scan: {job.error_message}")
+        """
+        payload = {"callbackUrl": callback_url, "powerCycle": power_cycle}
+        payload = {k: v for k, v in payload.items() if v is not None}
+        r = make_http_get_request(
+            "POST",
+            f"{BASE_URL}/bareMetals/v2/servers/{server_id}/hardwareScan",
+            self._auth.get_auth_header(),
+            json_data=payload,
+        )
+        data = r.json()
+
+        match r.status_code:
+            case HTTPStatusCodes.ACCEPTED:
+                return Job.model_validate(data)
+            case _:
+                converted_data = {camel_to_snake(k): v for k, v in data.items()}
+                if "error_code" not in converted_data:
+                    converted_data["error_code"] = str(r.status_code)
+                return APIError(**converted_data)
+
     # List jobs
     def get_jobs(
         self, server_id: str, query_parameter: ListJobsParameter = None

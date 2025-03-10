@@ -2495,6 +2495,60 @@ class DedicatedServers:
                     converted_data["error_code"] = str(r.status_code)
                 return APIError(**converted_data)
 
+    # Launch IPMI reset
+    def launch_ipmi_reset(
+        self, server_id: str, callback_url: str = None, power_cycle: bool = None
+    ) -> Job | APIError:
+        """
+        Launch an IPMI reset for a dedicated server.
+
+        This method initiates an IPMI reset for a dedicated server, which resets the server's
+        Intelligent Platform Management Interface (IPMI) controller, allowing for remote management
+        and monitoring of the server's hardware components.
+
+        Args:
+            server_id: The unique identifier of the server to launch an IPMI reset for.
+                This is usually the Leaseweb reference number for the server.
+            callback_url: Optional URL to receive a notification when the IPMI reset is completed.
+                If provided, a POST request will be sent to this URL with the reset results.
+            power_cycle: Optional flag to indicate whether the server should be power cycled after the IPMI reset.
+                If set to True, the server will be restarted after the IPMI reset is performed.
+
+        Returns:
+            A Job object containing details about the IPMI reset job when successful (HTTP 200),
+            or an APIError object containing error details when the API request fails.
+
+        Examples:
+            # Launch an IPMI reset for a server
+            job = dedicated_servers.launch_ipmi_reset("12345678")
+
+            # Access properties of the IPMI reset job
+            if not isinstance(job, APIError):
+                print(f"Job ID: {job.id}")
+                print(f"Type: {job.type}")
+                print(f"Status: {job.status}")
+            else:
+                print(f"Failed to launch IPMI reset: {job.error_message}")
+        """
+        payload = {"callbackUrl": callback_url, "powerCycle": power_cycle}
+        payload = {k: v for k, v in payload.items() if v is not None}
+        r = make_http_get_request(
+            "POST",
+            f"{BASE_URL}/bareMetals/v2/servers/{server_id}/ipmiReset",
+            self._auth.get_auth_header(),
+            json_data=payload,
+        )
+        data = r.json()
+
+        match r.status_code:
+            case HTTPStatusCodes.ACCEPTED:
+                return Job.model_validate(data)
+            case _:
+                converted_data = {camel_to_snake(k): v for k, v in data.items()}
+                if "error_code" not in converted_data:
+                    converted_data["error_code"] = str(r.status_code)
+                return APIError(**converted_data)
+
     # List jobs
     def get_jobs(
         self, server_id: str, query_parameter: ListJobsParameter = None

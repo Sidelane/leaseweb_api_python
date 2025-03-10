@@ -2643,6 +2643,63 @@ class DedicatedServers:
                     converted_data["error_code"] = str(r.status_code)
                 return APIError(**converted_data)
 
+    # Create DHCP reservation
+    def create_dhcp_reservation(
+        self, server_id: str, bootfile: str, hostname: str = None
+    ) -> None | APIError:
+        """
+        Create a DHCP reservation for a dedicated server.
+
+        This method creates a new DHCP reservation for a dedicated server, which assigns a specific
+        IP address to the server based on its MAC address. The reservation can include a custom
+        hostname and bootfile to configure the server's network settings.
+
+        Args:
+            server_id: The unique identifier of the server to create the DHCP reservation for.
+                This is usually the Leaseweb reference number for the server.
+            bootfile: The bootfile to use for the DHCP reservation, typically a PXE boot image.
+                This file is used to boot the server over the network and install an operating system.
+            hostname: Optional custom hostname to assign to the server in the DHCP reservation.
+                If provided, this hostname will be used to identify the server on the network.
+
+        Returns:
+            None when successful (HTTP 204 No Content), or an APIError object containing error details when
+            the API request fails.
+
+        Examples:
+            # Create a DHCP reservation for a server
+            result = dedicated_servers.create_dhcp_reservation("12345678", "bootfile.img", "my-server")
+
+            # Check if the creation was successful
+            if result is None:
+                print("DHCP reservation created successfully")
+            else:
+                print(f"Failed to create DHCP reservation: {result.error_message}")
+        """
+        payload = {"bootfile": bootfile, "hostname": hostname}
+        payload = {k: v for k, v in payload.items() if v is not None}
+        r = make_http_get_request(
+            "POST",
+            f"{BASE_URL}/bareMetals/v2/servers/{server_id}/leases",
+            self._auth.get_auth_header(),
+            json_data=payload,
+        )
+
+        try:
+            data = r.json()
+        except JSONDecodeError:
+            data = None
+            pass
+
+        match r.status_code:
+            case HTTPStatusCodes.NO_CONTENT:
+                return None
+            case _:
+                converted_data = {camel_to_snake(k): v for k, v in data.items()}
+                if "error_code" not in converted_data:
+                    converted_data["error_code"] = str(r.status_code)
+                return APIError(**converted_data)
+
     # List jobs
     def get_jobs(
         self, server_id: str, query_parameter: ListJobsParameter = None

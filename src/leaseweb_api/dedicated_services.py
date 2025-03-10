@@ -23,6 +23,7 @@ from .types.parameters import (
 from .types.credentials import Credential, CredentialWithoutPassword, CredentialType
 from .types.jobs import Job, Lease
 from .types.enums import DetectionProfile, HTTPStatusCodes
+from .types.parameters import Unit, Frequency
 
 
 class DedicatedServices:
@@ -55,41 +56,41 @@ class DedicatedServers:
         self, query_parameters: dict[str, int | str] = None
     ) -> list[DedicatedServer] | APIError:
         """
-    Retrieve a list of dedicated servers from the Leaseweb API.
-    
-    This method fetches all dedicated servers associated with the authenticated account
-    and returns them as a list of DedicatedServer objects. The results can be filtered
-    using query parameters.
-    
-    Args:
-        query_parameters: Optional dictionary containing query parameters to filter results.
-            Supported parameters include:
-            - limit: Maximum number of servers to return
-            - offset: Number of servers to skip for pagination
-            - reference: Filter by server reference
-            - ip: Filter by IP address
-            - macAddress: Filter by MAC address
-            - site: Filter by data center location
-            - privateRackId: Filter by private rack ID
-            - privateNetworkCapable: Filter by private network capability (bool)
-            - privateNetworkEnabled: Filter by private network status (bool)
-            
-    Returns:
-        Either a list of DedicatedServer objects when successful (HTTP 200), or an
-        APIError object containing error details when the API request fails.
-        
-    Examples:
-        # Get all servers
-        servers = dedicated_servers.list_servers()
-        
-        # Get servers with pagination
-        params = {"limit": 10, "offset": 20}
-        servers = dedicated_servers.list_servers(params)
-        
-        # Filter by reference
-        params = {"reference": "my-server-reference"}
-        servers = dedicated_servers.list_servers(params)
-    """
+        Retrieve a list of dedicated servers from the Leaseweb API.
+
+        This method fetches all dedicated servers associated with the authenticated account
+        and returns them as a list of DedicatedServer objects. The results can be filtered
+        using query parameters.
+
+        Args:
+            query_parameters: Optional dictionary containing query parameters to filter results.
+                Supported parameters include:
+                - limit: Maximum number of servers to return
+                - offset: Number of servers to skip for pagination
+                - reference: Filter by server reference
+                - ip: Filter by IP address
+                - macAddress: Filter by MAC address
+                - site: Filter by data center location
+                - privateRackId: Filter by private rack ID
+                - privateNetworkCapable: Filter by private network capability (bool)
+                - privateNetworkEnabled: Filter by private network status (bool)
+
+        Returns:
+            Either a list of DedicatedServer objects when successful (HTTP 200), or an
+            APIError object containing error details when the API request fails.
+
+        Examples:
+            # Get all servers
+            servers = dedicated_servers.list_servers()
+
+            # Get servers with pagination
+            params = {"limit": 10, "offset": 20}
+            servers = dedicated_servers.list_servers(params)
+
+            # Filter by reference
+            params = {"reference": "my-server-reference"}
+            servers = dedicated_servers.list_servers(params)
+        """
         if query_parameters is not None:
             query_parameters = {
                 k: v for k, v in query_parameters.dict().items() if v is not None
@@ -122,22 +123,22 @@ class DedicatedServers:
     def get_server(self, server_id: str) -> DedicatedServer | APIError:
         """
         Retrieve a specific dedicated server's details from the Leaseweb API.
-        
+
         This method fetches detailed information about a single dedicated server
         identified by its ID.
-        
+
         Args:
             server_id: The unique identifier of the server to retrieve.
                 This is usually the Leaseweb reference number for the server.
-        
+
         Returns:
             A DedicatedServer object containing all server details when successful (HTTP 200),
             or an APIError object containing error details when the API request fails.
-            
+
         Examples:
             # Get details for a specific server
             server = dedicated_servers.get_server("12345678")
-            
+
             # Access properties of the returned server
             if not isinstance(server, APIError):
                 print(f"Server name: {server.reference}")
@@ -259,24 +260,24 @@ class DedicatedServers:
     def get_server_ip(self, server_id: str, ip: str) -> Ip4 | APIError:
         """
         Retrieve detailed information about a specific IP address of a dedicated server.
-        
-        This method fetches information about a single IP address associated with a 
+
+        This method fetches information about a single IP address associated with a
         dedicated server identified by its ID.
-        
+
         Args:
             server_id: The unique identifier of the server the IP belongs to.
                 This is usually the Leaseweb reference number for the server.
             ip: The specific IP address to retrieve information about.
                 Should be in standard IPv4 or IPv6 format (e.g., "192.168.1.1").
-        
+
         Returns:
             An Ip4 object containing details about the IP address when successful (HTTP 200),
             or an APIError object containing error details when the API request fails.
-            
+
         Examples:
             # Get details for a specific IP address
             ip_info = dedicated_servers.get_server_ip("12345678", "192.168.1.1")
-            
+
             # Access properties of the returned IP object
             if not isinstance(ip_info, APIError):
                 print(f"IP: {ip_info.ip}")
@@ -314,10 +315,10 @@ class DedicatedServers:
     ) -> IPUpdate | APIError:
         """
         Update configuration settings for a specific IP address of a dedicated server.
-        
+
         This method allows modifying IP-specific settings such as DDoS detection profile
         and reverse DNS lookup (PTR record) for a specific IP address.
-        
+
         Args:
             server_id: The unique identifier of the server the IP belongs to.
                 This is usually the Leaseweb reference number for the server.
@@ -327,30 +328,30 @@ class DedicatedServers:
                 Must be a value from the DetectionProfile enum (e.g., DetectionProfile.ADVANCED_DEFAULT).
             reverse_lookup: Optional reverse DNS lookup value (PTR record) to set for this IP.
                 This defines the hostname that will be returned when this IP is looked up via rDNS.
-        
+
         Returns:
             An IPUpdate object containing details about the updated IP address when successful (HTTP 200),
             or an APIError object containing error details when the API request fails.
-            
+
         Examples:
             # Update the DDoS detection profile for an IP
             result = dedicated_servers.update_server_ip(
-                "12345678", 
-                "192.168.1.1", 
+                "12345678",
+                "192.168.1.1",
                 detection_profile=DetectionProfile.ADVANCED_DEFAULT
             )
-            
+
             # Update the reverse lookup (PTR record) for an IP
             result = dedicated_servers.update_server_ip(
-                "12345678", 
-                "192.168.1.1", 
+                "12345678",
+                "192.168.1.1",
                 reverse_lookup="server1.example.com"
             )
-            
+
             # Update both settings at once
             result = dedicated_servers.update_server_ip(
-                "12345678", 
-                "192.168.1.1", 
+                "12345678",
+                "192.168.1.1",
                 detection_profile=DetectionProfile.ADVANCED_DEFAULT,
                 reverse_lookup="server1.example.com"
             )
@@ -383,24 +384,24 @@ class DedicatedServers:
     def nullroute_ip(self, server_id: str, ip: str) -> APIError | None:
         """
         Apply null-routing to a specific IP address to mitigate DDoS attacks.
-        
+
         This method instructs the network to drop all traffic to and from the specified IP address,
         which is useful for mitigating DDoS attacks by isolating the targeted IP.
-        
+
         Args:
             server_id: The unique identifier of the server the IP belongs to.
                 This is usually the Leaseweb reference number for the server.
             ip: The specific IP address to null-route.
                 Should be in standard IPv4 or IPv6 format (e.g., "192.168.1.1").
-        
+
         Returns:
             An IPUpdate object containing details about the update when successful (HTTP 202 Accepted),
             or an APIError object containing error details when the API request fails.
-                
+
         Examples:
             # Null-route an IP address that's under attack
             result = dedicated_servers.nullroute_ip("12345678", "192.168.1.1")
-            
+
             # Check if the null-routing was successful
             if not isinstance(result, APIError):
                 print("IP has been successfully null-routed")
@@ -427,24 +428,24 @@ class DedicatedServers:
     def un_nullroute_ip(self, server_id: str, ip: str) -> APIError | None:
         """
         Remove null-routing from a previously null-routed IP address.
-        
+
         This method restores normal network traffic to and from the specified IP address
         after it was previously null-routed, typically when a DDoS attack has subsided.
-        
+
         Args:
             server_id: The unique identifier of the server the IP belongs to.
                 This is usually the Leaseweb reference number for the server.
             ip: The specific IP address to remove null-routing from.
                 Should be in standard IPv4 or IPv6 format (e.g., "192.168.1.1").
-        
+
         Returns:
             An IPUpdate object containing details about the update when successful (HTTP 202 Accepted),
             or an APIError object containing error details when the API request fails.
-                
+
         Examples:
             # Remove null-routing from a previously null-routed IP
             result = dedicated_servers.un_nullroute_ip("12345678", "192.168.1.1")
-            
+
             # Check if the removal of null-routing was successful
             if not isinstance(result, APIError):
                 print("IP has been successfully un-null-routed")
@@ -473,30 +474,30 @@ class DedicatedServers:
     ) -> list[Nullroute]:
         """
         Retrieve the null-routing history for a specific dedicated server.
-        
+
         This method fetches a list of past null-routing events for a dedicated server,
         including when the null-routing was applied, any comments, and when it was removed.
-        
+
         Args:
             server_id: The unique identifier of the server to retrieve null-route history for.
                 This is usually the Leaseweb reference number for the server.
             query_parameters: Optional QueryParameters object containing pagination parameters.
                 - limit: Maximum number of history entries to return
                 - offset: Number of entries to skip for pagination
-                
+
         Returns:
-            A list of Nullroute objects containing details about past null-routing events when 
-            successful (HTTP 200), or an APIError object containing error details when the API 
+            A list of Nullroute objects containing details about past null-routing events when
+            successful (HTTP 200), or an APIError object containing error details when the API
             request fails.
-                
+
         Examples:
             # Get all null-routing history for a server
             history = dedicated_servers.get_nullroute_history("12345678")
-            
+
             # Get null-routing history with pagination
             params = QueryParameters(limit=10, offset=0)
             history = dedicated_servers.get_nullroute_history("12345678", params)
-            
+
             # Process the null-routing history
             if not isinstance(history, APIError):
                 for entry in history:
@@ -542,32 +543,32 @@ class DedicatedServers:
     ) -> APIError | None:
         """
         Remove a server from a private network.
-        
+
         This method disconnects a dedicated server from a specified private network,
         removing it from the network's configuration.
-        
+
         Args:
             server_id: The unique identifier of the server to remove from the private network.
                 This is usually the Leaseweb reference number for the server.
             private_network_id: The unique identifier of the private network to remove the server from.
-                
+
         Returns:
-            None when successful (HTTP 202 Accepted), or an APIError object 
+            None when successful (HTTP 202 Accepted), or an APIError object
             containing error details when the API request fails.
-                
+
         Examples:
             # Remove a server from a private network
             result = dedicated_servers.remove_server_from_private_network(
-                "12345678", 
+                "12345678",
                 "pn-12345"
             )
-            
+
             # Check if the removal was successful
             if result is None:
                 print("Server successfully removed from private network")
             else:
                 print(f"Failed to remove server from private network: {result.error_message}")
-                
+
         Notes:
             This method has not been thoroughly tested, as noted in the implementation.
         """
@@ -599,35 +600,35 @@ class DedicatedServers:
     ) -> APIError | None:
         """
         Add a dedicated server to a private network.
-        
+
         This method connects a dedicated server to a specified private network with
         a given link speed, enabling private communication between servers in the network.
-        
+
         Args:
             server_id: The unique identifier of the server to add to the private network.
                 This is usually the Leaseweb reference number for the server.
             private_network_id: The unique identifier of the private network to add the server to.
             link_speed: The speed of the network connection in Mbps.
                 Common values are 100, 1000 (1Gbps), or 10000 (10Gbps).
-                
+
         Returns:
-            None when successful (HTTP 204 No Content), or an APIError object 
+            None when successful (HTTP 204 No Content), or an APIError object
             containing error details when the API request fails.
-                
+
         Examples:
             # Add a server to a private network with a 1Gbps link
             result = dedicated_servers.add_server_to_private_network(
-                "12345678", 
+                "12345678",
                 "pn-12345",
                 1000
             )
-            
+
             # Check if the addition was successful
             if result is None:
                 print("Server successfully added to private network")
             else:
                 print(f"Failed to add server to private network: {result.error_message}")
-                
+
         Notes:
             This method has not been thoroughly tested, as noted in the implementation.
         """
@@ -659,23 +660,23 @@ class DedicatedServers:
     ) -> list[OperationNetworkInterface] | APIError:
         """
         Retrieve a list of network interfaces for a specific dedicated server.
-        
-        This method fetches information about all network interfaces associated with a 
+
+        This method fetches information about all network interfaces associated with a
         dedicated server, including status, link speed, and connection details.
-        
+
         Args:
             server_id: The unique identifier of the server to retrieve network interfaces for.
                 This is usually the Leaseweb reference number for the server.
-        
+
         Returns:
-            A list of OperationNetworkInterface objects containing network interface details 
-            when successful (HTTP 200), or an APIError object containing error details 
+            A list of OperationNetworkInterface objects containing network interface details
+            when successful (HTTP 200), or an APIError object containing error details
             when the API request fails.
-                
+
         Examples:
             # Get all network interfaces for a server
             interfaces = dedicated_servers.get_network_interfaces("12345678")
-            
+
             # Process the network interfaces
             if not isinstance(interfaces, APIError):
                 for interface in interfaces:
@@ -712,29 +713,29 @@ class DedicatedServers:
     def close_all_network_interfaces(self, server_id: str) -> APIError | None:
         """
         Close all network interfaces on a specific dedicated server.
-        
+
         This method administratively shuts down all network interfaces on a dedicated server,
         effectively disconnecting it from all networks. This can be useful for security purposes
         or when preparing a server for maintenance.
-        
+
         Args:
             server_id: The unique identifier of the server to close network interfaces for.
                 This is usually the Leaseweb reference number for the server.
-        
+
         Returns:
-            None when successful (HTTP 204 No Content), or an APIError object containing 
+            None when successful (HTTP 204 No Content), or an APIError object containing
             error details when the API request fails.
-                
+
         Examples:
             # Close all network interfaces on a server
             result = dedicated_servers.close_all_network_interfaces("12345678")
-            
+
             # Check if the operation was successful
             if result is None:
                 print("All network interfaces closed successfully")
             else:
                 print(f"Failed to close network interfaces: {result.error_message}")
-                
+
         Warning:
             This action will disconnect the server from all networks, including the internet.
             Ensure you have an alternative way to access the server (like IPMI/KVM) before
@@ -765,23 +766,23 @@ class DedicatedServers:
     def open_all_network_interfaces(self, server_id: str) -> APIError | None:
         """
         Open all network interfaces on a specific dedicated server.
-        
+
         This method administratively enables all network interfaces on a dedicated server,
         reconnecting it to all configured networks. This is typically used after interfaces
         have been closed, for example after maintenance or security measures.
-        
+
         Args:
             server_id: The unique identifier of the server to open network interfaces for.
                 This is usually the Leaseweb reference number for the server.
-        
+
         Returns:
-            None when successful (HTTP 204 No Content), or an APIError object containing 
+            None when successful (HTTP 204 No Content), or an APIError object containing
             error details when the API request fails.
-                
+
         Examples:
             # Open all network interfaces on a server
             result = dedicated_servers.open_all_network_interfaces("12345678")
-            
+
             # Check if the operation was successful
             if result is None:
                 print("All network interfaces opened successfully")
@@ -815,29 +816,29 @@ class DedicatedServers:
     ) -> OperationNetworkInterface | APIError:
         """
         Retrieve detailed information about a specific network interface type on a dedicated server.
-        
-        This method fetches detailed information about a single network interface (public, 
+
+        This method fetches detailed information about a single network interface (public,
         internal, or remote management) on a dedicated server identified by its ID.
-        
+
         Args:
             server_id: The unique identifier of the server to retrieve the network interface for.
                 This is usually the Leaseweb reference number for the server.
             network_type: The type of network interface to retrieve.
                 Must be a value from the NetworkTypeParameter enum (e.g., NetworkTypeParameter.PUBLIC,
                 NetworkTypeParameter.INTERNAL, or NetworkTypeParameter.REMOTE_MANAGEMENT).
-        
+
         Returns:
             An OperationNetworkInterface object containing details about the network interface
-            when successful (HTTP 200), or an APIError object containing error details when 
+            when successful (HTTP 200), or an APIError object containing error details when
             the API request fails.
-                
+
         Examples:
             # Get the public network interface for a server
             interface = dedicated_servers.get_network_interface(
-                "12345678", 
+                "12345678",
                 NetworkTypeParameter.PUBLIC
             )
-            
+
             # Access properties of the returned network interface
             if not isinstance(interface, APIError):
                 print(f"Link speed: {interface.link_speed}")
@@ -871,24 +872,24 @@ class DedicatedServers:
     ) -> dict[str, str] | APIError:
         """
         Retrieve DDoS notification settings for a specific dedicated server.
-        
+
         This method fetches the current DDoS notification settings configured for a dedicated server,
         including whether nulling and scrubbing notifications are enabled or disabled.
-        
+
         Args:
             server_id: The unique identifier of the server to retrieve DDoS notification settings for.
                 This is usually the Leaseweb reference number for the server.
-        
+
         Returns:
             A dictionary containing DDoS notification settings when successful (HTTP 200),
             or an APIError object containing error details when the API request fails.
-            The dictionary typically contains keys like 'nulling' and 'scrubbing' with 
+            The dictionary typically contains keys like 'nulling' and 'scrubbing' with
             values of 'ENABLED' or 'DISABLED'.
-                
+
         Examples:
             # Get DDoS notification settings for a server
             settings = dedicated_servers.get_ddos_notification_settings("12345678")
-            
+
             # Process the notification settings
             if not isinstance(settings, APIError):
                 print(f"Nulling notifications: {settings.get('nulling')}")
@@ -914,13 +915,14 @@ class DedicatedServers:
 
     # Update DDoS notification settings
     def update_ddos_notification_settings(
-        self, server_id: str, nulling: bool, scrubbing: bool) -> APIError | None:
+        self, server_id: str, nulling: bool, scrubbing: bool
+    ) -> APIError | None:
         """
         Update DDoS notification settings for a specific dedicated server.
-        
+
         This method configures whether the server should send notifications for DDoS-related
         events such as nulling (null-routing) and scrubbing (DDoS mitigation) actions.
-        
+
         Args:
             server_id: The unique identifier of the server to update DDoS notification settings for.
                 This is usually the Leaseweb reference number for the server.
@@ -928,26 +930,26 @@ class DedicatedServers:
                 When enabled, notifications will be sent when the server's IP addresses are null-routed.
             scrubbing: Whether to enable (True) or disable (False) notifications for DDoS scrubbing events.
                 When enabled, notifications will be sent when DDoS mitigation is applied.
-        
+
         Returns:
-            None when successful (HTTP 204 No Content), or an APIError object containing 
+            None when successful (HTTP 204 No Content), or an APIError object containing
             error details when the API request fails.
-                
+
         Examples:
             # Enable both nulling and scrubbing notifications
             result = dedicated_servers.update_ddos_notification_settings(
-                "12345678", 
-                nulling=True, 
+                "12345678",
+                nulling=True,
                 scrubbing=True
             )
-            
+
             # Disable nulling notifications but keep scrubbing notifications
             result = dedicated_servers.update_ddos_notification_settings(
-                "12345678", 
-                nulling=False, 
+                "12345678",
+                nulling=False,
                 scrubbing=True
             )
-            
+
             # Check if the update was successful
             if result is None:
                 print("DDoS notification settings updated successfully")
@@ -985,11 +987,11 @@ class DedicatedServers:
     ) -> MetricValues | APIError:
         """
         Retrieve bandwidth usage metrics for a specific dedicated server.
-        
+
         This method fetches bandwidth usage data (upload and download) for a dedicated server
         over a specified time period, with options for different time granularities and
         aggregation methods.
-        
+
         Args:
             server_id: The unique identifier of the server to retrieve bandwidth metrics for.
                 This is usually the Leaseweb reference number for the server.
@@ -998,28 +1000,28 @@ class DedicatedServers:
                 - to: The end datetime for the metrics period (required)
                 - granularity: The time interval between data points (e.g., HOUR, DAY, WEEK)
                 - aggregation: The method used to aggregate data (e.g., AVG, SUM, PERC_95)
-        
+
         Returns:
             A MetricValues object containing bandwidth metrics data when successful (HTTP 200),
             or an APIError object containing error details when the API request fails.
             The MetricValues object typically contains UP_PUBLIC and DOWN_PUBLIC metrics.
-                
+
         Examples:
             # Get bandwidth metrics for the last 24 hours with hourly granularity
             from datetime import datetime, timedelta
-            
+
             end_time = datetime.now()
             start_time = end_time - timedelta(days=1)
-            
+
             params = ShowMetricsParameter(
                 start=start_time,
                 to=end_time,
                 granularity=Granularity.HOUR,
                 aggregation=Aggregation.AVG
             )
-            
+
             metrics = dedicated_servers.get_bandwidth_metrics("12345678", params)
-            
+
             # Access the bandwidth metrics
             if not isinstance(metrics, APIError):
                 if metrics.UP_PUBLIC:
@@ -1061,11 +1063,11 @@ class DedicatedServers:
     ) -> MetricValues | APIError:
         """
         Retrieve data traffic metrics for a specific dedicated server.
-        
+
         This method fetches data traffic consumption for a dedicated server over a specified time period,
         with options for different time granularities and aggregation methods. This helps track
         how much data has been consumed against your data traffic quota.
-        
+
         Args:
             server_id: The unique identifier of the server to retrieve data traffic metrics for.
                 This is usually the Leaseweb reference number for the server.
@@ -1074,28 +1076,28 @@ class DedicatedServers:
                 - to: The end datetime for the metrics period (required)
                 - granularity: The time interval between data points (e.g., HOUR, DAY, WEEK)
                 - aggregation: The method used to aggregate data (e.g., AVG, SUM, PERC_95)
-        
+
         Returns:
             A MetricValues object containing data traffic metrics when successful (HTTP 200),
             or an APIError object containing error details when the API request fails.
             The MetricValues object typically contains DATATRAFFIC_PUBLIC metrics.
-                
+
         Examples:
             # Get data traffic metrics for the last 30 days with daily granularity
             from datetime import datetime, timedelta
-            
+
             end_time = datetime.now()
             start_time = end_time - timedelta(days=30)
-            
+
             params = ShowMetricsParameter(
                 start=start_time,
                 to=end_time,
                 granularity=Granularity.DAY,
                 aggregation=Aggregation.SUM
             )
-            
+
             metrics = dedicated_servers.get_datatraffic_metrics("12345678", params)
-            
+
             # Access the data traffic metrics
             if not isinstance(metrics, APIError):
                 if metrics.DATATRAFFIC_PUBLIC:
@@ -1137,23 +1139,23 @@ class DedicatedServers:
     ) -> dict[str, str] | APIError:
         """
         Retrieve bandwidth notification settings for a specific dedicated server.
-        
-        This method fetches the current bandwidth notification settings configured for a 
+
+        This method fetches the current bandwidth notification settings configured for a
         dedicated server, which determine when alerts are triggered based on bandwidth usage.
-        
+
         Args:
             server_id: The unique identifier of the server to retrieve bandwidth notification settings for.
                 This is usually the Leaseweb reference number for the server.
-        
+
         Returns:
             A dictionary containing bandwidth notification settings when successful (HTTP 200),
             or an APIError object containing error details when the API request fails.
             The dictionary typically contains setting IDs and their configuration details.
-                
+
         Examples:
             # Get bandwidth notification settings for a server
             settings = dedicated_servers.get_bandwidth_notification_settings("12345678")
-            
+
             # Process the bandwidth notification settings
             if not isinstance(settings, APIError):
                 for setting_id, details in settings.items():
@@ -1178,30 +1180,95 @@ class DedicatedServers:
                     converted_data["error_code"] = str(r.status_code)
                 return APIError(**converted_data)
 
+    # Create a bandwidth notification setting
+    def create_bandwidth_notification_setting(
+        self, server_id: str, frequency: str, threshold: str, unit: str
+    ) -> NotificationSetting | APIError:
+        """
+        Create a new bandwidth notification setting for a specific dedicated server.
+
+        This method configures a new bandwidth notification setting for a dedicated server,
+        specifying the threshold value, frequency of notifications, and the unit of measurement.
+
+        Args:
+            server_id: The unique identifier of the server to create the notification setting for.
+                This is usually the Leaseweb reference number for the server.
+            frequency: The frequency at which notifications should be sent when the threshold is exceeded.
+                Must be a value from the Frequency enum (e.g., Frequency.HOURLY, Frequency.DAILY).
+            threshold: The bandwidth threshold value that triggers a notification when exceeded.
+                This value should be a string representing the threshold value (e.g., "1").
+            unit: The unit of measurement for the threshold value.
+                Must be a value from the Unit enum (e.g., Unit.MBPS, Unit.GB).
+
+        Returns:
+            A NotificationSetting object containing details about the new notification setting
+            when successful (HTTP 201 Created), or an APIError object containing error details
+            when the API request fails.
+
+        Examples:
+            # Create a new bandwidth notification setting for a server
+            setting = dedicated_servers.create_bandwidth_notification_setting(
+                "12345678",
+                Frequency.HOURLY,
+                "1000",
+                Unit.MBPS
+            )
+
+            # Access properties of the created notification setting
+            if not isinstance(setting, APIError):
+                print(f"Threshold: {setting.threshold}")
+                print(f"Unit: {setting.unit}")
+                print(f"Frequency: {setting.frequency}")
+            else:
+                print(f"Failed to create notification setting: {setting.error_message}")
+        """
+        frequency = frequency.value if isinstance(frequency, Frequency) else frequency
+        unit = unit.value if isinstance(unit, Unit) else unit
+        r = make_http_get_request(
+            "POST",
+            f"{BASE_URL}/bareMetals/v2/servers/{server_id}/notificationSettings/bandwidth",
+            self._auth.get_auth_header(),
+            json_data={
+                "frequency": frequency,
+                "threshold": threshold,
+                "unit": unit,
+            },
+        )
+        data = r.json()
+
+        match r.status_code:
+            case HTTPStatusCodes.CREATED:
+                return NotificationSetting.model_validate(data)
+            case _:
+                converted_data = {camel_to_snake(k): v for k, v in data.items()}
+                if "error_code" not in converted_data:
+                    converted_data["error_code"] = str(r.status_code)
+                return APIError(**converted_data)
+
     # Show a bandwidth notification setting
     def get_bandwidth_notification_setting(
         self, server_id: str, notification_setting_id: str
     ) -> NotificationSetting | APIError:
         """
         Retrieve detailed information about a specific bandwidth notification setting.
-        
+
         This method fetches the configuration details of a single bandwidth notification setting
         for a dedicated server, identified by both the server ID and the notification setting ID.
-        
+
         Args:
             server_id: The unique identifier of the server the notification setting belongs to.
                 This is usually the Leaseweb reference number for the server.
             notification_setting_id: The unique identifier of the specific notification setting to retrieve.
-        
+
         Returns:
             A NotificationSetting object containing details about the notification configuration
-            when successful (HTTP 200), or an APIError object containing error details when the 
+            when successful (HTTP 200), or an APIError object containing error details when the
             API request fails.
-                
+
         Examples:
             # Get a specific bandwidth notification setting
             setting = dedicated_servers.get_bandwidth_notification_setting("12345678", "bw-setting-123")
-            
+
             # Access properties of the returned notification setting
             if not isinstance(setting, APIError):
                 print(f"Threshold: {setting.threshold}")
@@ -1232,23 +1299,23 @@ class DedicatedServers:
     ) -> DataTrafficNotificationSetting | APIError:
         """
         Retrieve bandwidth notification settings for a specific dedicated server.
-        
-        This method fetches the current bandwidth notification settings configured for a 
+
+        This method fetches the current bandwidth notification settings configured for a
         dedicated server, which determine when alerts are triggered based on bandwidth usage.
-        
+
         Args:
             server_id: The unique identifier of the server to retrieve bandwidth notification settings for.
                 This is usually the Leaseweb reference number for the server.
-        
+
         Returns:
             A dictionary containing bandwidth notification settings when successful (HTTP 200),
             or an APIError object containing error details when the API request fails.
             The dictionary typically contains setting IDs and their configuration details.
-                
+
         Examples:
             # Get bandwidth notification settings for a server
             settings = dedicated_servers.get_bandwidth_notification_settings("12345678")
-            
+
             # Process the bandwidth notification settings
             if not isinstance(settings, APIError):
                 for setting_id, details in settings.items():
@@ -1279,22 +1346,22 @@ class DedicatedServers:
     ) -> DataTrafficNotificationSetting | APIError:
         """
         Retrieve data traffic notification settings for a specific dedicated server.
-        
-        This method fetches the current data traffic notification settings configured for a 
+
+        This method fetches the current data traffic notification settings configured for a
         dedicated server, which determine when alerts are triggered based on data transfer quotas.
-        
+
         Args:
             server_id: The unique identifier of the server to retrieve data traffic notification settings for.
                 This is usually the Leaseweb reference number for the server.
-        
+
         Returns:
             A DataTrafficNotificationSetting object containing notification settings when successful (HTTP 200),
             or an APIError object containing error details when the API request fails.
-                
+
         Examples:
             # Get data traffic notification settings for a server
             settings = dedicated_servers.get_datatraffic_notification_settings("12345678")
-            
+
             # Access properties of the returned settings
             if not isinstance(settings, APIError):
                 print(f"Threshold: {settings.threshold}")
@@ -1302,7 +1369,7 @@ class DedicatedServers:
                 print(f"Frequency: {settings.frequency}")
             else:
                 print(f"Failed to get data traffic notification settings: {settings.error_message}")
-                
+
         Note:
             This method is incorrectly named in the codebase as a duplicate of get_bandwidth_notification_settings.
             It should be renamed to get_datatraffic_notification_settings to accurately reflect its purpose.
@@ -1329,24 +1396,24 @@ class DedicatedServers:
     ) -> HardwareInformation | APIError:
         """
         Retrieve detailed hardware information for a specific dedicated server.
-        
+
         This method fetches comprehensive hardware details about a dedicated server,
-        including processor specifications, memory configuration, storage devices, 
+        including processor specifications, memory configuration, storage devices,
         and other hardware components.
-        
+
         Args:
             server_id: The unique identifier of the server to retrieve hardware information for.
                 This is usually the Leaseweb reference number for the server.
-        
+
         Returns:
-            A HardwareInformation object containing detailed hardware specifications when 
-            successful (HTTP 200), or an APIError object containing error details when the 
+            A HardwareInformation object containing detailed hardware specifications when
+            successful (HTTP 200), or an APIError object containing error details when the
             API request fails.
-                
+
         Examples:
             # Get hardware information for a server
             hardware_info = dedicated_servers.get_hardware_information("12345678")
-            
+
             # Access hardware details
             if not isinstance(hardware_info, APIError):
                 print(f"CPU: {hardware_info.cpu.model}")
@@ -1375,22 +1442,22 @@ class DedicatedServers:
     def get_control_panels(self) -> list[dict[str, str]] | APIError:
         """
         Retrieve a list of available control panels for dedicated servers.
-        
+
         This method fetches all control panels that can be installed on dedicated servers,
         which is useful when provisioning or reinstalling servers with specific control panel requirements.
-        
+
         Args:
             None
-        
+
         Returns:
             A list of dictionaries containing control panel details when successful (HTTP 200),
             or an APIError object containing error details when the API request fails.
             Each dictionary typically includes keys like 'id', 'name', and 'description'.
-                
+
         Examples:
             # Get all available control panels
             control_panels = dedicated_servers.get_control_panels()
-            
+
             # Process the control panels
             if not isinstance(control_panels, APIError):
                 for panel in control_panels:
@@ -1422,28 +1489,28 @@ class DedicatedServers:
     ) -> list[dict[str, str]] | APIError:
         """
         Retrieve a list of operating systems available for installation on dedicated servers.
-        
+
         This method fetches all operating systems that can be installed on dedicated servers,
         with optional filtering by compatibility with a specific control panel. This is useful
         when preparing for server provisioning or reinstallation.
-        
+
         Args:
             control_panel_id: Optional ID of a control panel to filter compatible operating systems.
                 When provided, only returns operating systems that are compatible with the specified
                 control panel.
-        
+
         Returns:
             A list of dictionaries containing operating system details when successful (HTTP 200),
             or an APIError object containing error details when the API request fails.
             Each dictionary typically includes keys like 'id', 'name', and 'version'.
-                
+
         Examples:
             # Get all available operating systems
             operating_systems = dedicated_servers.get_operating_systems()
-            
+
             # Get operating systems compatible with a specific control panel
             operating_systems = dedicated_servers.get_operating_systems("CPANEL")
-            
+
             # Process the operating systems
             if not isinstance(operating_systems, APIError):
                 for os in operating_systems:
@@ -1481,24 +1548,24 @@ class DedicatedServers:
     ) -> dict[str, str] | APIError:
         """
         Retrieve detailed information about a specific operating system.
-        
+
         This method fetches comprehensive details about a single operating system
         that is available for installation on dedicated servers, identified by its ID.
-        
+
         Args:
             operating_system_id: The unique identifier of the operating system to retrieve.
                 This ID can be obtained from the get_operating_systems method.
-        
+
         Returns:
             A dictionary containing details about the operating system when successful (HTTP 200),
             or an APIError object containing error details when the API request fails.
             The dictionary typically includes keys like 'id', 'name', 'version', 'architecture',
             and 'supportedControlPanels'.
-                
+
         Examples:
             # Get detailed information about a specific operating system
             os_info = dedicated_servers.get_operating_system("UBUNTU_20_04_64BIT")
-            
+
             # Process the operating system details
             if not isinstance(os_info, APIError):
                 print(f"Name: {os_info.get('name')}")
@@ -1528,23 +1595,23 @@ class DedicatedServers:
     def get_rescue_images(self) -> list[dict[str, str]] | APIError:
         """
         Retrieve a list of available rescue images for dedicated servers.
-        
+
         This method fetches all rescue images that can be used to boot a dedicated server
         in rescue mode, which is useful for troubleshooting or recovery operations when
         the main operating system is inaccessible or corrupted.
-        
+
         Args:
             None
-        
+
         Returns:
             A list of dictionaries containing rescue image details when successful (HTTP 200),
             or an APIError object containing error details when the API request fails.
             Each dictionary typically includes keys like 'id', 'name', and 'description'.
-                
+
         Examples:
             # Get all available rescue images
             rescue_images = dedicated_servers.get_rescue_images()
-            
+
             # Process the rescue images
             if not isinstance(rescue_images, APIError):
                 for image in rescue_images:
@@ -1576,23 +1643,23 @@ class DedicatedServers:
     ) -> CredentialWithoutPassword | APIError:
         """
         Retrieve credential information for a dedicated server without exposing passwords.
-        
+
         This method fetches all credential records associated with a dedicated server,
         including usernames and types, but does not include the actual passwords for security reasons.
-        
+
         Args:
             server_id: The unique identifier of the server to retrieve credentials for.
                 This is usually the Leaseweb reference number for the server.
-        
+
         Returns:
-            A list of CredentialWithoutPassword objects containing credential information 
-            when successful (HTTP 200), or an APIError object containing error details when 
+            A list of CredentialWithoutPassword objects containing credential information
+            when successful (HTTP 200), or an APIError object containing error details when
             the API request fails.
-                
+
         Examples:
             # Get all credentials for a server
             credentials = dedicated_servers.get_server_credentials_without_password("12345678")
-            
+
             # Process the credentials
             if not isinstance(credentials, APIError):
                 for cred in credentials:
@@ -1601,7 +1668,7 @@ class DedicatedServers:
                     print(f"Updated: {cred.last_update}")
             else:
                 print(f"Failed to get credentials: {credentials.error_message}")
-                
+
         Note:
             This method only returns credential metadata without actual passwords.
             To retrieve passwords, use the get_server_credentials method with specific credential type and username.
@@ -1635,29 +1702,29 @@ class DedicatedServers:
     ) -> list[dict[str, str]] | APIError:
         """
         Retrieve credential information of a specific type for a dedicated server without exposing passwords.
-        
+
         This method fetches credential records associated with a dedicated server filtered by credential type,
         including usernames and types, but does not include the actual passwords for security reasons.
-        
+
         Args:
             server_id: The unique identifier of the server to retrieve credentials for.
                 This is usually the Leaseweb reference number for the server.
             credential_type: The type of credentials to retrieve.
-                Must be a value from the CredentialType enum (e.g., CredentialType.OPERATING_SYSTEM, 
+                Must be a value from the CredentialType enum (e.g., CredentialType.OPERATING_SYSTEM,
                 CredentialType.CONTROL_PANEL).
-        
+
         Returns:
-            A list of CredentialWithoutPassword objects containing credential information 
-            when successful (HTTP 200), or an APIError object containing error details when 
+            A list of CredentialWithoutPassword objects containing credential information
+            when successful (HTTP 200), or an APIError object containing error details when
             the API request fails.
-                
+
         Examples:
             # Get operating system credentials for a server
             os_credentials = dedicated_servers.get_server_credentials_by_type_without_password(
-                "12345678", 
+                "12345678",
                 CredentialType.OPERATING_SYSTEM
             )
-            
+
             # Process the credentials
             if not isinstance(os_credentials, APIError):
                 for cred in os_credentials:
@@ -1665,7 +1732,7 @@ class DedicatedServers:
                     print(f"Last updated: {cred.last_update}")
             else:
                 print(f"Failed to get credentials: {os_credentials.error_message}")
-                
+
         Note:
             This method only returns credential metadata without actual passwords.
             To retrieve passwords, use the get_server_credentials method with specific credential type and username.
@@ -1700,31 +1767,31 @@ class DedicatedServers:
     ) -> dict[str, str] | APIError:
         """
         Retrieve detailed credential information including passwords for a specific server account.
-        
+
         This method fetches complete credential details including the password for a specific
         account on a dedicated server, identified by server ID, credential type, and username.
-        
+
         Args:
             server_id: The unique identifier of the server to retrieve credentials for.
                 This is usually the Leaseweb reference number for the server.
             credential_type: The type of credential to retrieve.
-                Must be a value from the CredentialType enum (e.g., CredentialType.OPERATING_SYSTEM, 
+                Must be a value from the CredentialType enum (e.g., CredentialType.OPERATING_SYSTEM,
                 CredentialType.CONTROL_PANEL).
             username: The specific username of the credential to retrieve.
-        
+
         Returns:
             A Credential object containing complete credential details including the password
-            when successful (HTTP 200), or an APIError object containing error details when 
+            when successful (HTTP 200), or an APIError object containing error details when
             the API request fails.
-                
+
         Examples:
             # Get the root password for a server
             credentials = dedicated_servers.get_server_credentials(
-                "12345678", 
+                "12345678",
                 CredentialType.OPERATING_SYSTEM,
                 "root"
             )
-            
+
             # Access the returned credential details
             if not isinstance(credentials, APIError):
                 print(f"Username: {credentials.username}")
@@ -1732,7 +1799,7 @@ class DedicatedServers:
                 print(f"Type: {credentials.type}")
             else:
                 print(f"Failed to get credentials: {credentials.error_message}")
-                
+
         Warning:
             This method retrieves sensitive information including passwords. Ensure that
             calls to this method are properly secured and that retrieved passwords are
@@ -1760,11 +1827,11 @@ class DedicatedServers:
     ) -> list[Job] | APIError:
         """
         Retrieve a list of jobs associated with a specific dedicated server.
-        
+
         This method fetches the history of jobs that have been performed on a dedicated server,
         such as installations, reinstallations, rescues, or other maintenance operations.
         The results can be filtered and paginated using query parameters.
-        
+
         Args:
             server_id: The unique identifier of the server to retrieve jobs for.
                 This is usually the Leaseweb reference number for the server.
@@ -1774,25 +1841,25 @@ class DedicatedServers:
                 - offset: Number of jobs to skip for pagination
                 - status: Filter by job status (e.g., COMPLETED, FAILED, RUNNING)
                 - type: Filter by job type (e.g., RESCUE, INSTALLATION)
-        
+
         Returns:
             A list of Job objects containing job details when successful (HTTP 200),
             or an APIError object containing error details when the API request fails.
-                
+
         Examples:
             # Get all jobs for a server
             jobs = dedicated_servers.get_jobs("12345678")
-            
+
             # Get jobs with pagination and filtering
             from datetime import datetime
-            
+
             params = ListJobsParameter(
                 limit=10,
                 offset=0,
                 status="COMPLETED"
             )
             jobs = dedicated_servers.get_jobs("12345678", params)
-            
+
             # Process the jobs
             if not isinstance(jobs, APIError):
                 for job in jobs:
@@ -1836,32 +1903,32 @@ class DedicatedServers:
     def get_job(self, server_id: str, job_id: str) -> Job | APIError:
         """
         Retrieve detailed information about a specific job associated with a dedicated server.
-        
+
         This method fetches complete details about a single job that was performed on a
         dedicated server, identified by both the server ID and the job ID. Jobs represent
         operations like installations, reboots, rescue mode, and other maintenance actions.
-        
+
         Args:
             server_id: The unique identifier of the server the job was performed on.
                 This is usually the Leaseweb reference number for the server.
             job_id: The unique identifier of the specific job to retrieve.
                 This is a UUID that can be obtained from the get_jobs method.
-        
+
         Returns:
             A Job object containing complete details about the job when successful (HTTP 200),
             or an APIError object containing error details when the API request fails.
-                
+
         Examples:
             # Get details for a specific job
             job = dedicated_servers.get_job("12345678", "job-uuid-12345")
-            
+
             # Access properties of the returned job
             if not isinstance(job, APIError):
                 print(f"Job type: {job.type}")
                 print(f"Status: {job.status}")
                 print(f"Created at: {job.created_at}")
                 print(f"Running: {job.is_running}")
-                
+
                 # Access task details if available
                 if job.tasks:
                     for task in job.tasks:
@@ -1893,23 +1960,23 @@ class DedicatedServers:
     def get_dhcp_reservations(self, server_id: str) -> Lease | APIError:
         """
         Retrieve DHCP lease reservations for a specific dedicated server.
-        
+
         This method fetches all DHCP lease reservations associated with a dedicated server,
         which are static IP address assignments based on MAC addresses. These are useful
         for ensuring devices always receive the same IP address when using DHCP.
-        
+
         Args:
             server_id: The unique identifier of the server to retrieve DHCP reservations for.
                 This is usually the Leaseweb reference number for the server.
-        
+
         Returns:
             A list of Lease objects containing DHCP reservation details when successful (HTTP 200),
             or an APIError object containing error details when the API request fails.
-                
+
         Examples:
             # Get all DHCP reservations for a server
             leases = dedicated_servers.get_dhcp_reservations("12345678")
-            
+
             # Process the DHCP reservations
             if not isinstance(leases, APIError):
                 for lease in leases:
@@ -1946,23 +2013,23 @@ class DedicatedServers:
     def get_power_status(self, server_id: str) -> dict[str, str] | APIError:
         """
         Retrieve the current power status of a specific dedicated server.
-        
+
         This method fetches information about the power state of a dedicated server,
         including whether it is powered on or off, and potentially other power-related details.
-        
+
         Args:
             server_id: The unique identifier of the server to retrieve power status for.
                 This is usually the Leaseweb reference number for the server.
-        
+
         Returns:
             A dictionary containing power status information when successful (HTTP 200),
             or an APIError object containing error details when the API request fails.
             The dictionary typically includes keys like 'status' with values such as 'ON' or 'OFF'.
-                
+
         Examples:
             # Get the power status for a server
             power_info = dedicated_servers.get_power_status("12345678")
-            
+
             # Process the power status
             if not isinstance(power_info, APIError):
                 print(f"Power status: {power_info.get('status')}")

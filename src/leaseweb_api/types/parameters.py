@@ -64,3 +64,14 @@ class ListJobsParameter(BaseModel):
     type: Optional[str] = None
     status: Optional[str] = None
     isRunning: Optional[bool] = None
+
+
+class Frequency(str, Enum):
+    DAILY = "DAILY"
+    WEEKLY = "WEEKLY"
+    MONTHLY = "MONTHLY"
+
+
+class Unit(str, Enum):
+    MBPS = "Mbps"
+    GBPS = "Gbps"

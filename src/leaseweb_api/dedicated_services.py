@@ -2290,6 +2290,59 @@ class DedicatedServers:
                     converted_data["error_code"] = str(r.status_code)
                 return APIError(**converted_data)
 
+    # Update server credentials
+    def update_server_credentials(
+        self, server_id: str, credential: Credential
+    ) -> Credential | APIError:
+        """
+        Update credentials for a dedicated server.
+
+        This method updates existing credentials for a dedicated server, such as an operating system
+        username and password, a control panel login, or other types of server access credentials.
+
+        Args:
+            server_id: The unique identifier of the server to update credentials for.
+                This is usually the Leaseweb reference number for the server.
+            credential: A Credential object containing the updated details of the credentials to update.
+                The Credential object should include the type of credential, username, and password.
+
+        Returns:
+            A Credential object containing details about the updated credentials when successful (HTTP 200),
+            or an APIError object containing error details when the API request fails.
+
+        Examples:
+            # Update credentials for a server
+            updated_credentials = Credential(
+                type=CredentialType.OPERATING_SYSTEM,
+                username="admin",
+                password="NewP@ssw0rd"
+            )
+            credentials = dedicated_servers.update_server_credentials("12345678", updated_credentials)
+
+            # Access properties of the updated credentials
+            if not isinstance(credentials, APIError):
+                print(f"Username: {credentials.username}")
+                print(f"Type: {credentials.type}")
+            else:
+                print(f"Failed to update credentials: {credentials.error_message}")
+        """
+        r = make_http_get_request(
+            "PUT",
+            f"{BASE_URL}/bareMetals/v2/servers/{server_id}/credentials/{credential.type.value}/{credential.username}",
+            self._auth.get_auth_header(),
+            json_data={"password": credential.password},
+        )
+        data = r.json()
+
+        match r.status_code:
+            case HTTPStatusCodes.OK:
+                return Credential.model_validate(data)
+            case _:
+                converted_data = {camel_to_snake(k): v for k, v in data.items()}
+                if "error_code" not in converted_data:
+                    converted_data["error_code"] = str(r.status_code)
+                return APIError(**converted_data)
+
     # List jobs
     def get_jobs(
         self, server_id: str, query_parameter: ListJobsParameter = None

@@ -1,6 +1,3 @@
-from .dedicated_servers import DedicatedServices, DedicatedServers
 from .auth_provider import LeasewebAuthenticationProvider
-from .types.enums import DetectionProfile
-from .types.credentials import Credential, CredentialWithoutPassword, CredentialType
-
-from .types.parameters import *
+from .dedicated_services import DedicatedServices
+from .dedicated_servers import DedicatedServers

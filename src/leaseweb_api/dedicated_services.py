@@ -1181,6 +1181,7 @@ class DedicatedServers:
                 return APIError(**converted_data)
 
     # Create a bandwidth notification setting
+    # TODO: Test this method. I think this is working, but I didnt have a chance to test it yet.
     def create_bandwidth_notification_setting(
         self, server_id: str, frequency: str, threshold: str, unit: str
     ) -> NotificationSetting | APIError:
@@ -1246,6 +1247,7 @@ class DedicatedServers:
                 return APIError(**converted_data)
 
     # Delete a bandwidth notification setting
+    # TODO: Test this method. I think this is working, but I didnt have a chance to test it yet.
     def delete_bandwidth_notification_setting(
         self, server_id: str, notification_setting_id: str
     ) -> APIError | None:
@@ -1332,6 +1334,78 @@ class DedicatedServers:
             "GET",
             f"{BASE_URL}/bareMetals/v2/servers/{server_id}/notificationSettings/bandwidth/{notification_setting_id}",
             self._auth.get_auth_header(),
+        )
+        data = r.json()
+
+        match r.status_code:
+            case HTTPStatusCodes.OK:
+                return NotificationSetting.model_validate(data)
+            case _:
+                converted_data = {camel_to_snake(k): v for k, v in data.items()}
+                if "error_code" not in converted_data:
+                    converted_data["error_code"] = str(r.status_code)
+                return APIError(**converted_data)
+
+    # Update a bandwidth notification setting
+    def update_bandwidth_notification_setting(
+        self,
+        server_id: str,
+        notification_setting_id: str,
+        frequency: str,
+        threshold: str,
+        unit: str,
+    ) -> NotificationSetting | APIError:
+        """
+        Update a bandwidth notification setting for a specific dedicated server.
+
+        This method modifies the configuration of an existing bandwidth notification setting
+        for a dedicated server, changing the threshold value, frequency of notifications, and unit.
+
+        Args:
+            server_id: The unique identifier of the server the notification setting belongs to.
+                This is usually the Leaseweb reference number for the server.
+            notification_setting_id: The unique identifier of the notification setting to update.
+            frequency: The frequency at which notifications should be sent when the threshold is exceeded.
+                Must be a value from the Frequency enum (e.g., Frequency.HOURLY, Frequency.DAILY).
+            threshold: The bandwidth threshold value that triggers a notification when exceeded.
+                This value should be a string representing the threshold value (e.g., "1").
+            unit: The unit of measurement for the threshold value.
+                Must be a value from the Unit enum (e.g., Unit.MBPS, Unit.GB).
+
+        Returns:
+            A NotificationSetting object containing details about the updated notification setting
+            when successful (HTTP 200), or an APIError object containing error details when the
+            API request fails.
+
+        Examples:
+            # Update a bandwidth notification setting for a server
+            setting = dedicated_servers.update_bandwidth_notification_setting(
+                "12345678",
+                "bw-setting-123",
+                Frequency.DAILY,
+                "2000",
+                Unit.GB
+            )
+
+            # Access properties of the updated notification setting
+            if not isinstance(setting, APIError):
+                print(f"Threshold: {setting.threshold}")
+                print(f"Unit: {setting.unit}")
+                print(f"Frequency: {setting.frequency}")
+            else:
+                print(f"Failed to update notification setting: {setting.error_message}")
+        """
+        frequency = frequency.value if isinstance(frequency, Frequency) else frequency
+        unit = unit.value if isinstance(unit, Unit) else unit
+        r = make_http_get_request(
+            "PUT",
+            f"{BASE_URL}/bareMetals/v2/servers/{server_id}/notificationSettings/bandwidth/{notification_setting_id}",
+            self._auth.get_auth_header(),
+            json_data={
+                "frequency": frequency,
+                "threshold": threshold,
+                "unit": unit,
+            },
         )
         data = r.json()
 

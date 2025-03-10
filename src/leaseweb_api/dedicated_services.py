@@ -2549,6 +2549,53 @@ class DedicatedServers:
                     converted_data["error_code"] = str(r.status_code)
                 return APIError(**converted_data)
 
+    # Retry a Job
+    def retry_job(self, server_id: str, job_id: str) -> Job | APIError:
+        """
+        Retry a failed job for a dedicated server.
+
+        This method retries a job that has previously failed for a dedicated server, allowing
+        the operation to be reattempted. This is useful for jobs like installations, rescues,
+        or other maintenance tasks that may have failed due to temporary issues.
+
+        Args:
+            server_id: The unique identifier of the server to retry the failed job for.
+                This is usually the Leaseweb reference number for the server.
+            job_id: The unique identifier of the specific job to retry.
+                This is a UUID that can be obtained from the get_jobs method.
+
+        Returns:
+            A Job object containing details about the retried job when successful (HTTP 200),
+            or an APIError object containing error details when the API request fails.
+
+        Examples:
+            # Retry a failed job for a server
+            job = dedicated_servers.retry_job("12345678", "job-uuid-12345")
+
+            # Access properties of the retried job
+            if not isinstance(job, APIError):
+                print(f"Job ID: {job.id}")
+                print(f"Type: {job.type}")
+                print(f"Status: {job.status}")
+            else:
+                print(f"Failed to retry job: {job.error_message}")
+        """
+        r = make_http_get_request(
+            "POST",
+            f"{BASE_URL}/bareMetals/v2/servers/{server_id}/jobs/{job_id}/retry",
+            self._auth.get_auth_header(),
+        )
+        data = r.json()
+
+        match r.status_code:
+            case HTTPStatusCodes.OK:
+                return Job.model_validate(data)
+            case _:
+                converted_data = {camel_to_snake(k): v for k, v in data.items()}
+                if "error_code" not in converted_data:
+                    converted_data["error_code"] = str(r.status_code)
+                return APIError(**converted_data)
+
     # List jobs
     def get_jobs(
         self, server_id: str, query_parameter: ListJobsParameter = None

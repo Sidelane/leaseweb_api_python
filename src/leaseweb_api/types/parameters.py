@@ -4,7 +4,7 @@ from datetime import datetime
 from pydantic import BaseModel
 
 from .enums import NetworkType
-from .jobs import Os, Partition
+from .jobs import Partition
 
 
 class QueryParameters(BaseModel):

@@ -1347,7 +1347,7 @@ class DedicatedServers:
                 return APIError(**converted_data)
 
     # Update a bandwidth notification setting
-     # TODO: Test this method. I think this is working, but I didnt have a chance to test it yet.
+    # TODO: Test this method. I think this is working, but I didnt have a chance to test it yet.
     def update_bandwidth_notification_setting(
         self,
         server_id: str,
@@ -1465,7 +1465,7 @@ class DedicatedServers:
                 if "error_code" not in converted_data:
                     converted_data["error_code"] = str(r.status_code)
                 return APIError(**converted_data)
-            
+
     # Create a data traffic notification setting
     # TODO: Test this method. I think this is working, but I didnt have a chance to test it yet.
     def create_datatraffic_notification_setting(
@@ -1531,7 +1531,7 @@ class DedicatedServers:
                 if "error_code" not in converted_data:
                     converted_data["error_code"] = str(r.status_code)
                 return APIError(**converted_data)
-            
+
     # Delete a data traffic notification setting
     # TODO: Test this method. I think this is working, but I didnt have a chance to test it yet.
     def delete_datatraffic_notification_setting(
@@ -1622,6 +1622,79 @@ class DedicatedServers:
             "GET",
             f"{BASE_URL}/bareMetals/v2/servers/{server_id}/notificationSettings/datatraffic/{notification_setting_id}",
             self._auth.get_auth_header(),
+        )
+        data = r.json()
+
+        match r.status_code:
+            case HTTPStatusCodes.OK:
+                return DataTrafficNotificationSetting.model_validate(data)
+            case _:
+                converted_data = {camel_to_snake(k): v for k, v in data.items()}
+                if "error_code" not in converted_data:
+                    converted_data["error_code"] = str(r.status_code)
+                return APIError(**converted_data)
+
+    # Update a datatraffic notification setting
+    # TODO: Test this method. I think this is working, but I didnt have a chance to test it yet.
+    def update_datatraffic_notification_setting(
+        self,
+        server_id: str,
+        notification_setting_id: str,
+        frequency: str,
+        threshold: str,
+        unit: str,
+    ) -> DataTrafficNotificationSetting | APIError:
+        """
+        Update a data traffic notification setting for a specific dedicated server.
+
+        This method modifies the configuration of an existing data traffic notification setting
+        for a dedicated server, changing the threshold value, frequency of notifications, and unit.
+
+        Args:
+            server_id: The unique identifier of the server the notification setting belongs to.
+                This is usually the Leaseweb reference number for the server.
+            notification_setting_id: The unique identifier of the notification setting to update.
+            frequency: The frequency at which notifications should be sent when the threshold is exceeded.
+                Must be a value from the Frequency enum (e.g., Frequency.HOURLY, Frequency.DAILY).
+            threshold: The data traffic threshold value that triggers a notification when exceeded.
+                This value should be a string representing the threshold value (e.g., "1").
+            unit: The unit of measurement for the threshold value.
+                Can be either: "MB", "GB" or "TB".
+
+        Returns:
+            A DataTrafficNotificationSetting object containing details about the updated notification setting
+            when successful (HTTP 200), or an APIError object containing error details when the
+            API request fails.
+
+        Examples:
+            # Update a data traffic notification setting for a server
+            setting = dedicated_servers.update_datatraffic_notification_setting(
+                "12345678",
+                "dt-setting-123",
+                Frequency.DAILY,
+                "2000",
+                "GB"
+            )
+
+            # Access properties of the updated notification setting
+            if not isinstance(setting, APIError):
+                print(f"Threshold: {setting.threshold}")
+                print(f"Unit: {setting.unit}")
+                print(f"Frequency: {setting.frequency}")
+            else:
+                print(f"Failed to update notification setting: {setting.error_message}")
+        """
+        frequency = frequency.value if isinstance(frequency, Frequency) else frequency
+        unit = unit.value if isinstance(unit, Unit) else unit
+        r = make_http_get_request(
+            "PUT",
+            f"{BASE_URL}/bareMetals/v2/servers/{server_id}/notificationSettings/datatraffic/{notification_setting_id}",
+            self._auth.get_auth_header(),
+            json_data={
+                "frequency": frequency,
+                "threshold": threshold,
+                "unit": unit,
+            },
         )
         data = r.json()
 
@@ -1881,6 +1954,49 @@ class DedicatedServers:
                     converted_data["error_code"] = str(r.status_code)
                 return APIError(**converted_data)
 
+    # Cancel active Job
+    def cancel_job(self, server_id: str) -> Job | APIError:
+        """
+        Cancel an active job for a dedicated server.
+
+        This method cancels a currently active job for a dedicated server, stopping the
+        execution of the job and preventing any further changes to the server's configuration.
+
+        Args:
+            server_id: The unique identifier of the server to cancel the active job for.
+                This is usually the Leaseweb reference number for the server.
+
+        Returns:
+            A Job object containing details about the canceled job when successful (HTTP 200),
+            or an APIError object containing error details when the API request fails.
+
+        Examples:
+            # Cancel an active job for a server
+            job = dedicated_servers.cancel_job("12345678")
+
+            # Access properties of the canceled job
+            if not isinstance(job, APIError):
+                print(f"Job ID: {job.id}")
+                print(f"Status: {job.status}")
+            else:
+                print(f"Failed to cancel job: {job.error_message}")
+        """
+        r = make_http_get_request(
+            "POST",
+            f"{BASE_URL}/bareMetals/v2/servers/{server_id}/cancelActiveJob",
+            self._auth.get_auth_header(),
+        )
+        data = r.json()
+
+        match r.status_code:
+            case HTTPStatusCodes.OK:
+                return Job.model_validate(data)
+            case _:
+                converted_data = {camel_to_snake(k): v for k, v in data.items()}
+                if "error_code" not in converted_data:
+                    converted_data["error_code"] = str(r.status_code)
+                return APIError(**converted_data)
+
     # List server credentials
     def get_server_credentials_without_password(
         self, server_id: str
@@ -1934,6 +2050,60 @@ class DedicatedServers:
                     }
                     ret.append(CredentialWithoutPassword.model_validate(cred))
                 return ret
+            case _:
+                converted_data = {camel_to_snake(k): v for k, v in data.items()}
+                if "error_code" not in converted_data:
+                    converted_data["error_code"] = str(r.status_code)
+                return APIError(**converted_data)
+
+    # Create new server credentials
+    def create_server_credentials(
+        self, server_id: str, credential: Credential
+    ) -> Credential | APIError:
+        """
+        Create new credentials for a dedicated server.
+
+        This method creates new credentials for a dedicated server, such as an operating system
+        username and password, a control panel login, or other types of server access credentials.
+
+        Args:
+            server_id: The unique identifier of the server to create credentials for.
+                This is usually the Leaseweb reference number for the server.
+            credential: A Credential object containing the details of the new credentials to create.
+                The Credential object should include the type of credential, username, and password.
+
+        Returns:
+            A Credential object containing details about the newly created credentials when successful (HTTP 201),
+            or an APIError object containing error details when the API request fails.
+
+        Examples:
+            # Create new credentials for a server
+            new_credentials = Credential(
+                type=CredentialType.OPERATING_SYSTEM,
+                username="admin",
+                password="P@ssw0rd"
+            )
+            credentials = dedicated_servers.create_server_credentials("12345678", new_credentials)
+
+            # Access properties of the created credentials
+            if not isinstance(credentials, APIError):
+                print(f"Username: {credentials.username}")
+                print(f"Type: {credentials.type}")
+            else:
+                print(f"Failed to create credentials: {credentials.error_message}")
+        """
+        credential = credential.model_dump(exclude_unset=True)
+        r = make_http_get_request(
+            "POST",
+            f"{BASE_URL}/bareMetals/v2/servers/{server_id}/credentials",
+            self._auth.get_auth_header(),
+            json_data=credential,
+        )
+        data = r.json()
+
+        match r.status_code:
+            case HTTPStatusCodes.OK:
+                return Credential.model_validate(data)
             case _:
                 converted_data = {camel_to_snake(k): v for k, v in data.items()}
                 if "error_code" not in converted_data:

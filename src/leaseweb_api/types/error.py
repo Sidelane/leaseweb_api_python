@@ -1,9 +1,10 @@
 from pydantic import BaseModel
+from typing import Optional
 
 
 class APIError(BaseModel):
-    error_code: str
-    error_message: str
-    correlation_id: str = None
-    user_message: str = None
-    reference: str = None
+    error_code: Optional[str] = None
+    error_message: Optional[str] = None
+    correlation_id: Optional[str] = None
+    user_message: Optional[str] = None
+    reference: Optional[str] = None

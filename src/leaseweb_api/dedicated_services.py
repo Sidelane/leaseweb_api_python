@@ -2596,6 +2596,53 @@ class DedicatedServers:
                     converted_data["error_code"] = str(r.status_code)
                 return APIError(**converted_data)
 
+    # Delete a DHCP Reservation
+    def delete_dhcp_reservation(self, server_id: str) -> APIError | None:
+        """
+        Delete a DHCP reservation for a dedicated server.
+
+        This method deletes an existing DHCP reservation for a dedicated server, which
+        assigns a specific IP address to the server based on its MAC address.
+
+        Args:
+            server_id: The unique identifier of the server to delete the DHCP reservation for.
+                This is usually the Leaseweb reference number for the server.
+
+        Returns:
+            None when successful (HTTP 204 No Content), or an APIError object containing error details when
+            the API request fails.
+
+        Examples:
+            # Delete a DHCP reservation for a server
+            result = dedicated_servers.delete_dhcp_reservation("12345678")
+
+            # Check if the deletion was successful
+            if result is None:
+                print("DHCP reservation deleted successfully")
+            else:
+                print(f"Failed to delete DHCP reservation: {result.error_message}")
+        """
+        r = make_http_get_request(
+            "DELETE",
+            f"{BASE_URL}/bareMetals/v2/servers/{server_id}/leases",
+            self._auth.get_auth_header(),
+        )
+
+        try:
+            data = r.json()
+        except JSONDecodeError:
+            data = None
+            pass
+
+        match r.status_code:
+            case HTTPStatusCodes.NO_CONTENT:
+                return None
+            case _:
+                converted_data = {camel_to_snake(k): v for k, v in data.items()}
+                if "error_code" not in converted_data:
+                    converted_data["error_code"] = str(r.status_code)
+                return APIError(**converted_data)
+
     # List jobs
     def get_jobs(
         self, server_id: str, query_parameter: ListJobsParameter = None

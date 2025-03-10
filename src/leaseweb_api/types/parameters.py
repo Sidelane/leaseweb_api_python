@@ -4,6 +4,7 @@ from datetime import datetime
 from pydantic import BaseModel
 
 from .enums import NetworkType
+from .jobs import Os, Partition
 
 
 class QueryParameters(BaseModel):
@@ -75,3 +76,30 @@ class Frequency(str, Enum):
 class Unit(str, Enum):
     MBPS = "Mbps"
     GBPS = "Gbps"
+
+
+class RaidType(str, Enum):
+    HW = "HW"
+    SW = "SW"
+    NONE = "NONE"
+
+
+class Raid(BaseModel):
+    level: str
+    numberOfDisks: int
+    type: RaidType
+
+
+class Installation(BaseModel):
+    callbackUrl: Optional[str] = None
+    controlPanelId: Optional[str] = None
+    device: Optional[str] = None
+    hostname: Optional[str] = None
+    operatingSystemId: str
+    partitions: Optional[Partition] = None
+    password: Optional[str] = None
+    postInstallScript: Optional[str] = None
+    powerCycle: Optional[bool] = None
+    raid: Optional[Raid] = None
+    sshKeys: Optional[str] = None
+    timezone: Optional[str] = None

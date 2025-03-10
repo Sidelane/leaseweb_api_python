@@ -23,7 +23,7 @@ from .types.parameters import (
 from .types.credentials import Credential, CredentialWithoutPassword, CredentialType
 from .types.jobs import Job, Lease
 from .types.enums import DetectionProfile, HTTPStatusCodes
-from .types.parameters import Unit, Frequency
+from .types.parameters import Unit, Frequency, Installation
 
 
 class DedicatedServices:
@@ -2428,6 +2428,61 @@ class DedicatedServers:
             f"{BASE_URL}/bareMetals/v2/servers/{server_id}/hardwareScan",
             self._auth.get_auth_header(),
             json_data=payload,
+        )
+        data = r.json()
+
+        match r.status_code:
+            case HTTPStatusCodes.ACCEPTED:
+                return Job.model_validate(data)
+            case _:
+                converted_data = {camel_to_snake(k): v for k, v in data.items()}
+                if "error_code" not in converted_data:
+                    converted_data["error_code"] = str(r.status_code)
+                return APIError(**converted_data)
+
+    # Launch installation
+    def launch_installation(
+        self, server_id: str, installation: Installation
+    ) -> Job | APIError:
+        """
+        Launch an operating system installation on a dedicated server.
+
+        This method initiates an operating system installation on a dedicated server, using the
+        specified operating system and optional control panel. The installation process will
+        format the server's disks and install the selected operating system and control panel.
+
+        Args:
+            server_id: The unique identifier of the server to launch the installation for.
+                This is usually the Leaseweb reference number for the server.
+            installation: An Installation object containing the details of the installation to perform.
+                The Installation object should include the operating system ID and optional control panel ID.
+
+        Returns:
+            A Job object containing details about the installation job when successful (HTTP 200),
+            or an APIError object containing error details when the API request fails.
+
+        Examples:
+            # Launch an operating system installation for a server
+            new_installation = Installation(
+                operating_system_id="UBUNTU_20_04_64BIT",
+                control_panel_id="CPANEL"
+            )
+            job = dedicated_servers.launch_installation("12345678", new_installation)
+
+            # Access properties of the installation job
+            if not isinstance(job, APIError):
+                print(f"Job ID: {job.id}")
+                print(f"Type: {job.type}")
+                print(f"Status: {job.status}")
+            else:
+                print(f"Failed to launch installation: {job.error_message}")
+        """
+        installation = installation.model_dump(exclude_unset=True)
+        r = make_http_get_request(
+            "POST",
+            f"{BASE_URL}/bareMetals/v2/servers/{server_id}/install",
+            self._auth.get_auth_header(),
+            json_data=installation,
         )
         data = r.json()
 

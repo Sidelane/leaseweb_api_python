@@ -2700,6 +2700,54 @@ class DedicatedServers:
                     converted_data["error_code"] = str(r.status_code)
                 return APIError(**converted_data)
 
+    # Power cycle a server
+    def power_cycle_server(self, server_id: str) -> None | APIError:
+        """
+        Power cycle a dedicated server.
+
+        This method initiates a power cycle operation for a dedicated server, which restarts
+        the server by turning it off and then back on. This operation can help resolve issues
+        with the server's hardware or software components.
+
+        Args:
+            server_id: The unique identifier of the server to power cycle.
+                This is usually the Leaseweb reference number for the server.
+
+        Returns:
+            None when successful (HTTP 204 No Content), or an APIError object containing error details when
+            the API request fails.
+
+        Examples:
+            # Power cycle a server
+            result = dedicated_servers.power_cycle_server("12345678")
+
+            # Check if the power cycle was successful
+            if result is None:
+                print("Server power cycled successfully")
+            else:
+                print(f"Failed to power cycle server: {result.error_message}")
+        """
+        r = make_http_get_request(
+            "POST",
+            f"{BASE_URL}/bareMetals/v2/servers/{server_id}/powerCycle",
+            self._auth.get_auth_header(),
+        )
+
+        try:
+            data = r.json()
+        except JSONDecodeError:
+            data = None
+            pass
+
+        match r.status_code:
+            case HTTPStatusCodes.NO_CONTENT:
+                return None
+            case _:
+                converted_data = {camel_to_snake(k): v for k, v in data.items()}
+                if "error_code" not in converted_data:
+                    converted_data["error_code"] = str(r.status_code)
+                return APIError(**converted_data)
+
     # List jobs
     def get_jobs(
         self, server_id: str, query_parameter: ListJobsParameter = None

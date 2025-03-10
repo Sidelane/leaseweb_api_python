@@ -2110,6 +2110,61 @@ class DedicatedServers:
                     converted_data["error_code"] = str(r.status_code)
                 return APIError(**converted_data)
 
+    # Delete server credentials
+    def delete_server_credentials(
+        self, server_id: str, credential: CredentialWithoutPassword
+    ) -> APIError | None:
+        """
+        Delete credentials for a dedicated server.
+
+        This method deletes existing credentials for a dedicated server, such as an operating system
+        username and password, a control panel login, or other types of server access credentials.
+
+        Args:
+            server_id: The unique identifier of the server to delete credentials for.
+                This is usually the Leaseweb reference number for the server.
+            credential: A CredentialWithoutPassword object containing the details of the credentials to delete.
+                The CredentialWithoutPassword object should include the type of credential and username.
+
+        Returns:
+            None when successful (HTTP 204 No Content), or an APIError object containing error details when
+            the API request fails.
+
+        Examples:
+            # Delete credentials for a server
+            credentials = CredentialWithoutPassword(
+                type=CredentialType.OPERATING_SYSTEM,
+                username="admin"
+            )
+            result = dedicated_servers.delete_server_credentials("12345678", credentials)
+
+            # Check if the deletion was successful
+            if result is None:
+                print("Credentials deleted successfully")
+            else:
+                print(f"Failed to delete credentials: {result.error_message}")
+        """
+        r = make_http_get_request(
+            "DELETE",
+            f"{BASE_URL}/bareMetals/v2/servers/{server_id}/credentials/{credential.type.value}/{credential.username}",
+            self._auth.get_auth_header(),
+        )
+
+        try:
+            data = r.json()
+        except JSONDecodeError:
+            data = None
+            pass
+
+        match r.status_code:
+            case HTTPStatusCodes.NO_CONTENT:
+                return None
+            case _:
+                converted_data = {camel_to_snake(k): v for k, v in data.items()}
+                if "error_code" not in converted_data:
+                    converted_data["error_code"] = str(r.status_code)
+                return APIError(**converted_data)
+
     # List server credentials by type
     def get_server_credentials_by_type_without_password(
         self, server_id: str, credential_type: CredentialType

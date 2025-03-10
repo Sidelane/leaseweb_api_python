@@ -1467,7 +1467,7 @@ class DedicatedServers:
                 return APIError(**converted_data)
             
     # Create a data traffic notification setting
-     # TODO: Test this method. I think this is working, but I didnt have a chance to test it yet.
+    # TODO: Test this method. I think this is working, but I didnt have a chance to test it yet.
     def create_datatraffic_notification_setting(
         self, server_id: str, frequency: str, threshold: str, unit: str
     ) -> DataTrafficNotificationSetting | APIError:
@@ -1526,6 +1526,58 @@ class DedicatedServers:
         match r.status_code:
             case HTTPStatusCodes.CREATED:
                 return DataTrafficNotificationSetting.model_validate(data)
+            case _:
+                converted_data = {camel_to_snake(k): v for k, v in data.items()}
+                if "error_code" not in converted_data:
+                    converted_data["error_code"] = str(r.status_code)
+                return APIError(**converted_data)
+            
+    # Delete a data traffic notification setting
+    # TODO: Test this method. I think this is working, but I didnt have a chance to test it yet.
+    def delete_datatraffic_notification_setting(
+        self, server_id: str, notification_setting_id: str
+    ) -> APIError | None:
+        """
+        Delete a data traffic notification setting for a specific dedicated server.
+
+        This method removes a data traffic notification setting from a dedicated server based on the
+        notification setting ID. This can be used to delete notification settings that are no longer
+        needed or have been replaced by new configurations.
+
+        Args:
+            server_id: The unique identifier of the server the notification setting belongs to.
+                This is usually the Leaseweb reference number for the server.
+            notification_setting_id: The unique identifier of the specific notification setting to delete.
+
+        Returns:
+            None when successful (HTTP 204 No Content), or an APIError object containing error details
+            when the API request fails.
+
+        Examples:
+            # Delete a data traffic notification setting
+            result = dedicated_servers.delete_datatraffic_notification_setting("12345678", "dt-setting-123")
+
+            # Check if the deletion was successful
+            if result is None:
+                print("Data traffic notification setting deleted successfully")
+            else:
+                print(f"Failed to delete notification setting: {result.error_message}")
+        """
+        r = make_http_get_request(
+            "DELETE",
+            f"{BASE_URL}/bareMetals/v2/servers/{server_id}/notificationSettings/datatraffic/{notification_setting_id}",
+            self._auth.get_auth_header(),
+        )
+
+        try:
+            data = r.json()
+        except JSONDecodeError:
+            data = None
+            pass
+
+        match r.status_code:
+            case HTTPStatusCodes.NO_CONTENT:
+                return None
             case _:
                 converted_data = {camel_to_snake(k): v for k, v in data.items()}
                 if "error_code" not in converted_data:

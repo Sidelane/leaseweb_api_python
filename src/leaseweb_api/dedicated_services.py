@@ -1347,6 +1347,7 @@ class DedicatedServers:
                 return APIError(**converted_data)
 
     # Update a bandwidth notification setting
+     # TODO: Test this method. I think this is working, but I didnt have a chance to test it yet.
     def update_bandwidth_notification_setting(
         self,
         server_id: str,
@@ -1458,6 +1459,72 @@ class DedicatedServers:
 
         match r.status_code:
             case HTTPStatusCodes.OK:
+                return DataTrafficNotificationSetting.model_validate(data)
+            case _:
+                converted_data = {camel_to_snake(k): v for k, v in data.items()}
+                if "error_code" not in converted_data:
+                    converted_data["error_code"] = str(r.status_code)
+                return APIError(**converted_data)
+            
+    # Create a data traffic notification setting
+     # TODO: Test this method. I think this is working, but I didnt have a chance to test it yet.
+    def create_datatraffic_notification_setting(
+        self, server_id: str, frequency: str, threshold: str, unit: str
+    ) -> DataTrafficNotificationSetting | APIError:
+        """
+        Create a new data traffic notification setting for a specific dedicated server.
+
+        This method configures a new data traffic notification setting for a dedicated server,
+        specifying the threshold value, frequency of notifications, and the unit of measurement.
+
+        Args:
+            server_id: The unique identifier of the server to create the notification setting for.
+                This is usually the Leaseweb reference number for the server.
+            frequency: The frequency at which notifications should be sent when the threshold is exceeded.
+                Must be a value from the Frequency enum (e.g., Frequency.HOURLY, Frequency.DAILY).
+            threshold: The data traffic threshold value that triggers a notification when exceeded.
+                This value should be a string representing the threshold value (e.g., "1").
+            unit: The unit of measurement for the threshold value.
+                Can be either: "MB", "GB" or "TB".
+
+        Returns:
+            A DataTrafficNotificationSetting object containing details about the new notification setting
+            when successful (HTTP 201 Created), or an APIError object containing error details
+            when the API request fails.
+
+        Examples:
+            # Create a new data traffic notification setting for a server
+            setting = dedicated_servers.create_datatraffic_notification_setting(
+                "12345678",
+                Frequency.DAILY,
+                "1000",
+                "GB"
+            )
+
+            # Access properties of the created notification setting
+            if not isinstance(setting, APIError):
+                print(f"Threshold: {setting.threshold}")
+                print(f"Unit: {setting.unit}")
+                print(f"Frequency: {setting.frequency}")
+            else:
+                print(f"Failed to create notification setting: {setting.error_message}")
+        """
+        frequency = frequency.value if isinstance(frequency, Frequency) else frequency
+        unit = unit.value if isinstance(unit, Unit) else unit
+        r = make_http_get_request(
+            "POST",
+            f"{BASE_URL}/bareMetals/v2/servers/{server_id}/notificationSettings/datatraffic",
+            self._auth.get_auth_header(),
+            json_data={
+                "frequency": frequency,
+                "threshold": threshold,
+                "unit": unit,
+            },
+        )
+        data = r.json()
+
+        match r.status_code:
+            case HTTPStatusCodes.CREATED:
                 return DataTrafficNotificationSetting.model_validate(data)
             case _:
                 converted_data = {camel_to_snake(k): v for k, v in data.items()}
